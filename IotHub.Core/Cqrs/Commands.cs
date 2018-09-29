@@ -17,6 +17,7 @@ namespace IotHub.Core.Cqrs
     public interface ICommand
     {
         Guid CommandId { get; set; }
+        string TokenSession { get; set; }
     }
 
 }

@@ -308,6 +308,7 @@ namespace IotHub.Core.CqrsEngine
         }
 
         public Guid CommandId { get; set; } = Guid.NewGuid();
+        public string TokenSession { get; set; }
     }
     public class PingWorkerCommandHandles : ICommandHandle<PingWorker>
     {

@@ -7,8 +7,12 @@ namespace IotHub.Core.CqrsEngine
 {
    public static class CommandEventSender
     {
-        public static void Send(ICommand cmd)
+        public static void Send(ICommand cmd, string tokenSession="")
         {
+            if (tokenSession != "")
+            {
+                cmd.TokenSession = tokenSession;
+            }
             CommandsAndEventsRegisterEngine.PushCommand(cmd);
         }
 
