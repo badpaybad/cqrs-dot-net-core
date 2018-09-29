@@ -1,20 +1,19 @@
-﻿using Newtonsoft.Json;
+﻿using IotHub.Core.Cqrs;
+using IotHub.Core.Redis;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
-using IotHub.Core.Cqrs;
-using IotHub.Core.Redis;
 
 namespace IotHub.Core.CqrsEngine
 {
-    public static class EngineeCommandWorkerQueue
+    public static class EngineeEventWorkerQueue
     {
         //in-memory queue, can be use redis queue, rabitmq ...
-        // remember dispatched by type of command
-        static readonly ConcurrentDictionary<Type, ConcurrentQueue<ICommand>> _cmdDataQueue = new ConcurrentDictionary<Type, ConcurrentQueue<ICommand>>();
+        // remember dispatched by type of event
+        static readonly ConcurrentDictionary<Type, ConcurrentQueue<IEvent>> _cmdDataQueue = new ConcurrentDictionary<Type, ConcurrentQueue<IEvent>>();
 
         static readonly ConcurrentDictionary<Type, List<Thread>> _cmdWorker = new ConcurrentDictionary<Type, List<Thread>>();
         static readonly ConcurrentDictionary<Type, bool> _stopWorker = new ConcurrentDictionary<Type, bool>();
@@ -23,7 +22,7 @@ namespace IotHub.Core.CqrsEngine
         static readonly ConcurrentDictionary<string, Type> _cmdTypeName = new ConcurrentDictionary<string, Type>();
         static readonly object _locker = new object();
 
-        public static void Push(ICommand cmd)
+        public static void Push(IEvent cmd)
         {
             var type = cmd.GetType();
 
@@ -58,7 +57,7 @@ namespace IotHub.Core.CqrsEngine
                     _cmdTypeName[type.FullName] = type;
 
                     //in-memory queue, can be use redis queue, rabitmq ...
-                    _cmdDataQueue[type] = new ConcurrentQueue<ICommand>();
+                    _cmdDataQueue[type] = new ConcurrentQueue<IEvent>();
                     _cmdDataQueue[type].Enqueue(cmd);
 
                     InitFirstWorker(type);
@@ -69,7 +68,7 @@ namespace IotHub.Core.CqrsEngine
 
         private static string BuildRedisQueueName(Type type)
         {
-            return "EngineeCommandWorkerQueue_" + type.FullName;
+            return "EngineeEventWorkerQueue_" + type.FullName;
         }
 
         private static void InitFirstWorker(Type type)
@@ -100,7 +99,7 @@ namespace IotHub.Core.CqrsEngine
             }
         }
 
-        static EngineeCommandWorkerQueue()
+        static EngineeEventWorkerQueue()
         {
 
         }
@@ -123,22 +122,22 @@ namespace IotHub.Core.CqrsEngine
                                     .ListRightPop(queueName);
                                 if (cmdJson.HasValue)
                                 {
-                                    var cmd = JsonConvert.DeserializeObject(cmdJson, type) as ICommand;
-                                    if (cmd != null)
+                                    var evt = JsonConvert.DeserializeObject(cmdJson, type) as IEvent;
+                                    if (evt != null)
                                     {
-                                        CommandsAndEventsRegisterEngine.ExecCommand(cmd);
+                                        CommandsAndEventsRegisterEngine.ExecEvent(evt);
                                     }
                                 }
                             }
                             else
                             {
-                                if (_cmdDataQueue.TryGetValue(type, out ConcurrentQueue<ICommand> cmdQueue) &&
+                                if (_cmdDataQueue.TryGetValue(type, out ConcurrentQueue<IEvent> cmdQueue) &&
                                     cmdQueue != null)
                                 {
                                     //in-memory queue, can be use redis queue, rabitmq ...
-                                    if (cmdQueue.TryDequeue(out ICommand cmd) && cmd != null)
+                                    if (cmdQueue.TryDequeue(out IEvent evt) && evt != null)
                                     {
-                                        CommandsAndEventsRegisterEngine.ExecCommand(cmd);
+                                        CommandsAndEventsRegisterEngine.ExecEvent(evt);
                                     }
                                 }
                             }
@@ -258,7 +257,7 @@ namespace IotHub.Core.CqrsEngine
             }
             else
             {
-                if (_cmdDataQueue.TryGetValue(type, out ConcurrentQueue<ICommand> queue) && queue != null)
+                if (_cmdDataQueue.TryGetValue(type, out ConcurrentQueue<IEvent> queue) && queue != null)
                 {
                     queueDataCount = queue.Count;
                 }
@@ -294,51 +293,6 @@ namespace IotHub.Core.CqrsEngine
             lock (_locker)
             {
                 return _cmdTypeName[fullName];
-            }
-        }
-    }
-
-    public class PingWorker : ICommand
-    {
-        public readonly string Data;
-
-        public PingWorker(string data)
-        {
-            Data = data;
-        }
-
-        public Guid CommandId { get; set; } = Guid.NewGuid();
-    }
-    public class PingWorkerCommandHandles : ICommandHandle<PingWorker>
-    {
-        private static object _locker = new object();
-
-        public void Handle(PingWorker c)
-        {
-            try
-            {
-                var appData = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data");
-                if (Directory.Exists(appData) == false)
-                {
-                    Directory.CreateDirectory(appData);
-                }
-
-                var log = Path.Combine(appData, "pingworker.log");
-                lock (_locker)
-                {
-                    using (var sw = new StreamWriter(log, true))
-                    {
-                        var dateNow = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                        sw.WriteLine($"{dateNow} " + c.Data);
-                        sw.Flush();
-                    }
-                }
-
-                Thread.Sleep(1000);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
             }
         }
     }

@@ -5,16 +5,16 @@ using IotHub.Core.Cqrs;
 
 namespace IotHub.Core.CqrsEngine
 {
-   public static class CommandSender
+   public static class CommandEventSender
     {
         public static void Send(ICommand cmd)
         {
             CommandsAndEventsRegisterEngine.PushCommand(cmd);
         }
 
-        public static void Send(IEvent evn)
+        public static void Send(IEvent evt)
         {
-            CommandsAndEventsRegisterEngine.Push(evn);
+            CommandsAndEventsRegisterEngine.PushEvent(evt);
         }
     }
 }

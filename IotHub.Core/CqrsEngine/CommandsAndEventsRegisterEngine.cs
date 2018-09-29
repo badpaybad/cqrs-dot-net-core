@@ -1,9 +1,11 @@
-﻿using System;
+﻿using IotHub.Core.Cqrs;
+using IotHub.Core.Reflection;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
-using IotHub.Core.Cqrs;
+using System.Threading;
 
 namespace IotHub.Core.CqrsEngine
 {
@@ -14,13 +16,20 @@ namespace IotHub.Core.CqrsEngine
 
         static object _eventLocker = new object();
         static object _commandLocker = new object();
-        
+
         static List<string> _commands = new List<string>();
         static List<string> _events = new List<string>();
-        
+
+        static string _connectionString;
+
         static CommandsAndEventsRegisterEngine()
         {
 
+        }
+
+        public static void Init(string commandEventStorageConnectionString)
+        {
+            _connectionString = commandEventStorageConnectionString;
         }
 
         public static bool AutoRegister()
@@ -191,7 +200,20 @@ namespace IotHub.Core.CqrsEngine
             }
         }
 
-        internal static void Push(IEvent e)
+        internal static void PushEvent(IEvent e, bool execAsync = false)
+        {         
+            if (execAsync)
+            {
+                EngineeEventWorkerQueue.Push(e);
+            }
+            else
+            {
+                ExecEvent(e);
+            }
+        }
+
+
+        internal static void ExecEvent(IEvent e)
         {
             var t = e.GetType();
             List<Action<IEvent>> listAction;
@@ -234,6 +256,8 @@ namespace IotHub.Core.CqrsEngine
 
         internal static void PushCommand(ICommand c, bool execAsync = false)
         {
+            LogCommand(c);
+
             if (execAsync)
             {
                 EngineeCommandWorkerQueue.Push(c);
@@ -255,11 +279,16 @@ namespace IotHub.Core.CqrsEngine
                     throw new EntryPointNotFoundException($"Not found type: {t}. Check DomainEngine.Boot");
                 }
             }
-
-            //exec command
-            a(c);
-
+           
+            try {
+                a(c);
+                LogCommandState(c, CommandEventStorageState.Done, "Success", null);
+            } catch (Exception ex){
+                LogCommandState(c, CommandEventStorageState.Fail, ex.GetMessages(),ex);
+            }
+          
         }
+
 
         public static List<string> GetEvents()
         {
@@ -275,5 +304,49 @@ namespace IotHub.Core.CqrsEngine
                 return _commands;
             }
         }
+        
+        private static void LogCommand(ICommand c)
+        {
+            ThreadPool.QueueUserWorkItem((o)=> {
+                using (var db = new CommandEventStorageDbContext(_connectionString))
+                {
+                    db.CommandEventStorages.Add(new CommandEventStorage()
+                    {
+                        CreatedDate = DateTime.Now,
+                        DataJson = JsonConvert.SerializeObject(c),
+                        DataType = c.GetType().FullName,
+                        Id = c.CommandId,
+                        IsCommand = true
+                    });
+                    db.SaveChanges();
+                }
+
+            });
+           
+            LogCommandState(c, CommandEventStorageState.Pending, "Pending", null);
+        }
+
+        private static void LogCommandState(ICommand c, CommandEventStorageState state, string msg, Exception ex)
+        {
+            ThreadPool.QueueUserWorkItem((o) => {
+                if (ex != null)
+                {
+                    msg += "\r\n" + ex.StackTrace;
+                }
+                using (var db = new CommandEventStorageDbContext(_connectionString))
+                {
+                    db.CommandEventStorageHistories.Add(new CommandEventStorageHistory()
+                    {
+                        CommandEventId = c.CommandId,
+                        CreatedDate = DateTime.Now,
+                        Id = Guid.NewGuid(),
+                        Message = msg,
+                        State = (int)state
+                    });
+                    db.SaveChanges();
+                }
+            });          
+        }              
+      
     }
 }

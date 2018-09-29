@@ -16,6 +16,7 @@ namespace IotHub.Core.Cqrs
 
     public interface IEvent
     {
+        Guid EventId { get; set; }
         long Version { get; set; }
     }
 }
