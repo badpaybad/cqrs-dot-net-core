@@ -7,10 +7,11 @@ using System.Net;
 namespace IotHub.Core.CqrsEngine
 {
     [Route("api/CommandSender")]
-    public class CommandSenderController
+    [ApiController]
+    public class CommandSenderController : ControllerBase
     {
         [HttpPost]
-        public CommandResponse Post(CommandRequest cmd)
+        public ActionResult<CommandResponse> Post(CommandRequest cmd)
         {
             try
             {
@@ -28,7 +29,7 @@ namespace IotHub.Core.CqrsEngine
                 }
 
                 var o = jobj.ToObject(objectType);
-                
+
                 CommandEventSender.Send((ICommand)o, cmd.TokenSession);
 
                 return new CommandResponse()
@@ -49,7 +50,7 @@ namespace IotHub.Core.CqrsEngine
                     Success = false
                 };
             }
-           
+
         }
     }
 
