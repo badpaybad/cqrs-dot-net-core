@@ -1,4 +1,5 @@
 ﻿using IotHub.Core.CqrsEngine;
+using IotHub.Core.SampleHandles;
 using System;
 using System.Threading;
 

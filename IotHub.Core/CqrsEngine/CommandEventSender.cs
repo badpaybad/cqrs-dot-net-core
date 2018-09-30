@@ -1,24 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using IotHub.Core.Cqrs;
+﻿using IotHub.Core.Cqrs;
 
 namespace IotHub.Core.CqrsEngine
 {
-   public static class CommandEventSender
+    public static class CommandEventSender
     {
-        public static void Send(ICommand cmd, string tokenSession="")
+        public static void Send(ICommand cmd, string tokenSession = "", bool asyncExec = true)
         {
             if (tokenSession != "")
             {
                 cmd.TokenSession = tokenSession;
             }
-            CommandsAndEventsRegisterEngine.PushCommand(cmd);
+            CommandsAndEventsRegisterEngine.PushCommand(cmd, asyncExec);
         }
 
-        public static void Send(IEvent evt)
+        public static void Send(IEvent evt, bool asyncExec = true)
         {
-            CommandsAndEventsRegisterEngine.PushEvent(evt);
+            CommandsAndEventsRegisterEngine.PushEvent(evt, asyncExec);
         }
     }
 }

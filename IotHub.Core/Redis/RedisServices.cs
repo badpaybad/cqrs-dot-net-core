@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using Newtonsoft.Json;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -87,6 +88,30 @@ namespace IotHub.Core.Redis
         {
 
             return ConnectionMultiplexer.Connect(_options);
+        }
+
+        public static T Get<T>(string key)
+        {
+            var val = RedisDatabase.StringGet(key);
+            if (val.HasValue == false) return default(T);
+
+            return JsonConvert.DeserializeObject<T>(val );
+        }
+
+        public static void Set<T>(string key, T val, TimeSpan? expireAfter = null)
+        {
+            RedisDatabase.StringSet(key, JsonConvert.SerializeObject(val), expireAfter);
+        }
+
+        public static string Get(string key)
+        {
+            var val = RedisDatabase.StringGet(key);
+            return val;
+        }
+
+        public static void Set(string key, string val, TimeSpan? expireAfter = null)
+        {
+            RedisDatabase.StringSet(key, val, expireAfter);
         }
     }
 }

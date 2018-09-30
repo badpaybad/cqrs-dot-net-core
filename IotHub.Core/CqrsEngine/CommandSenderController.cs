@@ -1,4 +1,5 @@
-﻿using IotHub.Core.Cqrs;
+﻿using IotHub.Core.Api;
+using IotHub.Core.Cqrs;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
@@ -8,10 +9,10 @@ namespace IotHub.Core.CqrsEngine
 {
     [Route("api/CommandSender")]
     [ApiController]
-    public class CommandSenderController : ControllerBase
+    public class CommandSenderController : JsonControllerBase
     {
         [HttpPost]
-        public ActionResult<CommandResponse> Post(CommandRequest cmd)
+        public CommandResponse Post(CommandRequest cmd)
         {
             try
             {
@@ -62,11 +63,8 @@ namespace IotHub.Core.CqrsEngine
         public string TokenSession { get; set; }
     }
 
-    public class CommandResponse
+    public class CommandResponse:BaseResponse
     {
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public HttpStatusCode StatusCode { get; set; }
         public Guid CommandId { get; set; }
     }
 }

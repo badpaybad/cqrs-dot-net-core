@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using IotHub.Core.DataAccess;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -6,22 +7,10 @@ using System.Configuration;
 
 namespace IotHub.Core.Cqrs.CqrsEngine
 {
-    internal class CommandEventStorageDbContext : DbContext
+    internal class CommandEventStorageDbContext : BaseMsSqlDbContext
     {
-        private string _connectionString = string.Empty;
-
-        public CommandEventStorageDbContext(string connectionString)
+        public CommandEventStorageDbContext(string connectionString) : base(connectionString)
         {
-            _connectionString = connectionString;
-        }
-
-        public CommandEventStorageDbContext(DbContextOptions options) : base(options)
-        {
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer(_connectionString);
         }
 
         public DbSet<CommandEventStorage> CommandEventStorages { get; set; }

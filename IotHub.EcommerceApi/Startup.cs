@@ -11,6 +11,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NJsonSchema;
+using NSwag.AspNetCore;
+using System.Reflection;
 
 namespace IotHub.EcommerceApi
 {
@@ -29,6 +32,8 @@ namespace IotHub.EcommerceApi
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             CommandsAndEventsRegisterEngine.Init(Configuration["ConnectionStrings:CommandEventStorage"]);
+
+            services.AddSwagger();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,6 +49,13 @@ namespace IotHub.EcommerceApi
             }
 
             app.UseHttpsRedirection();
+
+            app.UseSwaggerUi3WithApiExplorer(settings =>
+            {
+                settings.GeneratorSettings.DefaultPropertyNameHandling =
+                    PropertyNameHandling.CamelCase;
+            });
+
             app.UseMvc();
         }
     }

@@ -232,7 +232,7 @@ namespace IotHub.Core.CqrsEngine
             {
                 if (!_eventHandler.TryGetValue(t, out listAction))
                 {
-                    throw new EntryPointNotFoundException($"Not found type: {t}");
+                    throw new EntryPointNotFoundException($"Not found type: {t}. Check {nameof(CommandsAndEventsRegisterEngine)} or {nameof(CommandsAndEventsRegisterEngine.RegisterEvent)}");
                 }
             }
 
@@ -287,7 +287,7 @@ namespace IotHub.Core.CqrsEngine
             {
                 if (!_commandHandler.TryGetValue(t, out a))
                 {
-                    throw new EntryPointNotFoundException($"Not found type: {t}. Check DomainEngine.Boot");
+                    throw new EntryPointNotFoundException($"Not found type: {t}. Check {nameof(CommandsAndEventsRegisterEngine.AutoRegister)} or {nameof(CommandsAndEventsRegisterEngine.RegisterCommand)}");
                 }
             }
            

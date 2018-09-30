@@ -1,26 +1,15 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using IotHub.Core.DataAccess;
 using Microsoft.EntityFrameworkCore;
 
 namespace IotHub.Core.Cqrs.EventSourcingRepository
 {
-    internal class EventSourcingDbContext :  DbContext
+    internal class EventSourcingDbContext :  BaseMsSqlDbContext
     {
-        private string _connectionString = string.Empty;
-
-        public EventSourcingDbContext(string connectionString)
+        public EventSourcingDbContext(string connectionString) : base(connectionString)
         {
-            _connectionString = connectionString;
-        }
-
-        public EventSourcingDbContext(DbContextOptions options) : base(options)
-        {
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseMySQL(_connectionString);
         }
 
         public DbSet<EventSourcingDescription> EventSoucings { get; set; }
