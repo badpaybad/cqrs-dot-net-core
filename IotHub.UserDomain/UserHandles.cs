@@ -1,4 +1,5 @@
-﻿using IotHub.Core.Cqrs;
+﻿using IotHub.CommandsEvents.UserDomain;
+using IotHub.Core.Cqrs;
 using System;
 
 namespace IotHub.UserDomain

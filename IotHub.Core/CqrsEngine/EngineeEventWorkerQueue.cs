@@ -101,7 +101,7 @@ namespace IotHub.Core.CqrsEngine
 
         static EngineeEventWorkerQueue()
         {
-
+            
         }
 
         static void WorkerDo(Type type)
@@ -114,18 +114,35 @@ namespace IotHub.Core.CqrsEngine
                     {
                         try
                         {
+                            if (!CommandsAndEventsRegisterEngine.EventWorkerCanDequeue(type))
+                            {
+                                continue;
+                            }
                             if (RedisServices.IsEnable)
                             {
                                 var queueName = BuildRedisQueueName(type);
 
-                                var cmdJson = RedisServices.RedisDatabase
+                                var evtJson = RedisServices.RedisDatabase
                                     .ListRightPop(queueName);
-                                if (cmdJson.HasValue)
+                                if (evtJson.HasValue)
                                 {
-                                    var evt = JsonConvert.DeserializeObject(cmdJson, type) as IEvent;
+                                    var evt = JsonConvert.DeserializeObject(evtJson, type) as IEvent;
                                     if (evt != null)
                                     {
-                                        CommandsAndEventsRegisterEngine.ExecEvent(evt);
+                                        try
+                                        {
+                                            CommandsAndEventsRegisterEngine.ExecEvent(evt);
+                                        }
+                                        catch
+                                        {
+                                            RedisServices.RedisDatabase
+                                 .ListLeftPush(queueName, evtJson);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        RedisServices.RedisDatabase
+                                        .ListLeftPush(queueName, evtJson);
                                     }
                                 }
                             }
@@ -277,7 +294,13 @@ namespace IotHub.Core.CqrsEngine
 
         public static void Start()
         {
+            var listEvt = CommandsAndEventsRegisterEngine._commandsEvents.Values
+                          .Where(i => typeof(IEvent).IsAssignableFrom(i)).ToList();
 
+            foreach (var t in listEvt)
+            {
+                InitFirstWorker(t);
+            }
         }
 
         public static List<string> ListAllCommandName()

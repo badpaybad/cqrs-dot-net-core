@@ -2,22 +2,22 @@
 
 namespace IotHub.Core.DataAccess
 {
-    public class BaseMsSqlDbContext : DbContext
+    public abstract class AbstractMySqlDbContext : DbContext
     {
         private string _connectionString = string.Empty;
 
-        public BaseMsSqlDbContext(string connectionString)
+        public AbstractMySqlDbContext(string connectionString)
         {
             _connectionString = connectionString;
         }
 
-        public BaseMsSqlDbContext(DbContextOptions options) : base(options)
+        public AbstractMySqlDbContext(DbContextOptions options) : base(options)
         {
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(_connectionString);
+            optionsBuilder.UseMySql(_connectionString);
         }
     }
 }

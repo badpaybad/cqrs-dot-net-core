@@ -17,8 +17,10 @@ namespace IotHub.Core.CqrsEngine
             try
             {
                 var jobj = JsonConvert.DeserializeObject(cmd.CommandDataJson) as Newtonsoft.Json.Linq.JObject;
-                var objectType = Type.GetType(cmd.CommandTypeFullName, false, true);
-                if (objectType == null || jobj == null)
+
+                var objectType = CommandsAndEventsRegisterEngine.FindTypeOfCommandOrEvent(cmd.CommandTypeFullName);
+                if (objectType == null || 
+                    jobj == null)
                 {
                     return new CommandResponse()
                     {

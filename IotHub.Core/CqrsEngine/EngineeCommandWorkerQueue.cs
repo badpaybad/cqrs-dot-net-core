@@ -1,12 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using IotHub.Core.Cqrs;
+using IotHub.Core.Redis;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
-using IotHub.Core.Cqrs;
-using IotHub.Core.Redis;
 
 namespace IotHub.Core.CqrsEngine
 {
@@ -102,7 +101,7 @@ namespace IotHub.Core.CqrsEngine
 
         static EngineeCommandWorkerQueue()
         {
-
+           
         }
 
         static void WorkerDo(Type type)
@@ -115,6 +114,10 @@ namespace IotHub.Core.CqrsEngine
                     {
                         try
                         {
+                            if (!CommandsAndEventsRegisterEngine.CommandWorkerCanDequeue(type))
+                            {
+                                continue;
+                            }
                             if (RedisServices.IsEnable)
                             {
                                 var queueName = BuildRedisQueueName(type);
@@ -126,7 +129,19 @@ namespace IotHub.Core.CqrsEngine
                                     var cmd = JsonConvert.DeserializeObject(cmdJson, type) as ICommand;
                                     if (cmd != null)
                                     {
-                                        CommandsAndEventsRegisterEngine.ExecCommand(cmd);
+                                        try
+                                        {
+                                            CommandsAndEventsRegisterEngine.ExecCommand(cmd);
+                                        } catch
+                                        {
+                                            RedisServices.RedisDatabase
+                                       .ListLeftPush(queueName, cmdJson);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        RedisServices.RedisDatabase
+                                        .ListLeftPush(queueName, cmdJson);
                                     }
                                 }
                             }
@@ -278,7 +293,13 @@ namespace IotHub.Core.CqrsEngine
 
         public static void Start()
         {
+            var listCmd = CommandsAndEventsRegisterEngine._commandsEvents.Values
+               .Where(i => typeof(ICommand).IsAssignableFrom(i)).ToList();
 
+            foreach (var t in listCmd)
+            {
+                InitFirstWorker(t);
+            }
         }
 
         public static List<string> ListAllCommandName()
@@ -298,4 +319,4 @@ namespace IotHub.Core.CqrsEngine
         }
     }
 
-  }
+}

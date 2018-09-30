@@ -86,7 +86,7 @@ namespace IotHub.Core.Redis
 
         static ConnectionMultiplexer GetConnection()
         {
-
+            if (_options == null) throw new Exception($"Must call {nameof(RedisServices.Init)}");
             return ConnectionMultiplexer.Connect(_options);
         }
 

@@ -6,9 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IotHub.Core.Cqrs.EventSourcingRepository
 {
-    internal class EventSourcingDbContext :  BaseMsSqlDbContext
+    internal class EventSourcingDbContext :  AbstractMsSqlDbContext
     {
-        public EventSourcingDbContext(string connectionString) : base(connectionString)
+
+        public EventSourcingDbContext(string connectionString) 
+            : base(ConfigurationManagerExtensions.GetConnectionString("EventSourcingDbContext"))
         {
         }
 

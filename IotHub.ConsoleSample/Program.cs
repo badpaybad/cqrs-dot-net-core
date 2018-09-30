@@ -1,4 +1,5 @@
 ﻿using IotHub.Core.CqrsEngine;
+using IotHub.Core.Redis;
 using IotHub.Core.SampleHandles;
 using System;
 using System.Threading;
@@ -10,11 +11,12 @@ namespace IotHub.ConsoleSample
         static bool _stop;
         static void Main(string[] args)
         {
-            CommandsAndEventsRegisterEngine.Init("Server=.\\SQLEXPRESS;Database=iothub;Trusted_Connection=True;");
-            CommandsAndEventsRegisterEngine.AutoRegister();
-            MessiveSendCmd();
+            RedisServices.Init("127.0.0.1", null, string.Empty);
 
-            FakeProcess();
+            CommandsAndEventsRegisterEngine.AutoRegister();
+
+            EngineeCommandWorkerQueue.Start();
+            EngineeEventWorkerQueue.Start();
 
             while (true)
             {
@@ -36,25 +38,22 @@ namespace IotHub.ConsoleSample
             }
         }
 
-        private static void FakeProcess()
-        {
-            EngineeCommandWorkerQueue.Start();
-            EngineeEventWorkerQueue.Start();
-        }
-
+      
         private static void MessiveSendCmd()
         {
-            new Thread(()=> {
+            new Thread(() =>
+            {
                 while (true)
                 {
                     if (_stop) return;
 
-                    CommandEventSender.Send(new PingWorker(DateTime.Now.ToString()) {
-                        CommandId= Guid.NewGuid(),
-                        TokenSession= Guid.NewGuid().ToString()
+                    CommandEventSender.Send(new PingWorker(DateTime.Now.ToString())
+                    {
+                        CommandId = Guid.NewGuid(),
+                        TokenSession = Guid.NewGuid().ToString()
                     });
                 }
-            }).Start();            
+            }).Start();
         }
     }
 }

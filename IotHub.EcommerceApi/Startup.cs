@@ -14,6 +14,9 @@ using Microsoft.Extensions.Options;
 using NJsonSchema;
 using NSwag.AspNetCore;
 using System.Reflection;
+using IotHub.OAuth;
+using IotHub.Core.Redis;
+using IotHub.Core;
 
 namespace IotHub.EcommerceApi
 {
@@ -22,6 +25,7 @@ namespace IotHub.EcommerceApi
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            ConfigurationManagerExtensions.SetConfiguration(configuration);
         }
 
         public IConfiguration Configuration { get; }
@@ -31,7 +35,12 @@ namespace IotHub.EcommerceApi
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
-            CommandsAndEventsRegisterEngine.Init(Configuration["ConnectionStrings:CommandEventStorage"]);
+            RedisServices.Init("127.0.0.1", null, string.Empty);
+
+            CommandsAndEventsRegisterEngine.AutoRegister();
+            
+            EngineeCommandWorkerQueue.Start();
+            EngineeEventWorkerQueue.Start();
 
             services.AddSwagger();
         }

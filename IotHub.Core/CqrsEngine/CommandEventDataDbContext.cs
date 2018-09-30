@@ -7,9 +7,10 @@ using System.Configuration;
 
 namespace IotHub.Core.Cqrs.CqrsEngine
 {
-    internal class CommandEventStorageDbContext : BaseMsSqlDbContext
+    internal class CommandEventStorageDbContext : AbstractMsSqlDbContext
     {
-        public CommandEventStorageDbContext(string connectionString) : base(connectionString)
+        public CommandEventStorageDbContext() 
+            : base(ConfigurationManagerExtensions.GetConnectionString("CommandEventStorageDbContext"))
         {
         }
 

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace IotHub.UserDomain
+namespace IotHub.CommandsEvents.UserDomain
 {
     public class RegisterUser : ICommand
     {

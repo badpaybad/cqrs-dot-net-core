@@ -5,7 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IotHub.CommandsEvents\IotHub.CommandsEvents.csproj" />
     <ProjectReference Include="..\IotHub.Core\IotHub.Core.csproj" />
   </ItemGroup>
 

@@ -9,11 +9,7 @@ namespace IotHub.OAuth
         static string _connectionString;
         public static readonly int EpireAfterMinutes = 30;
 
-        public static void Init(string connectionString)
-        {
-
-        }
-
+       
         public static User Login(string email, string password, out string tokenSession)
         {
             User u;
