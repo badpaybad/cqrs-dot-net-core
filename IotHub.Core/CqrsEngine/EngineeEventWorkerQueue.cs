@@ -275,7 +275,7 @@ namespace IotHub.Core.CqrsEngine
             return false;
         }
 
-        public static void Init()
+        public static void Start()
         {
 
         }

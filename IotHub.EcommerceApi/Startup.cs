@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IotHub.Core.CqrsEngine;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -26,6 +27,8 @@ namespace IotHub.EcommerceApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            CommandsAndEventsRegisterEngine.Init(Configuration["ConnectionStrings:CommandEventStorage"]);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -276,7 +276,7 @@ namespace IotHub.Core.CqrsEngine
             return false;
         }
 
-        public static void Init()
+        public static void Start()
         {
 
         }
@@ -313,7 +313,7 @@ namespace IotHub.Core.CqrsEngine
     public class PingWorkerCommandHandles : ICommandHandle<PingWorker>
     {
         private static object _locker = new object();
-
+        Random _rnd = new Random();
         public void Handle(PingWorker c)
         {
             try
@@ -335,7 +335,7 @@ namespace IotHub.Core.CqrsEngine
                     }
                 }
 
-                Thread.Sleep(1000);
+                Thread.Sleep(_rnd.Next(3000));
             }
             catch (Exception e)
             {

@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotHub.AwsFirstLambdaFuncti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotHub.Core", "IotHub.Core\IotHub.Core.csproj", "{AEF4B7A4-707B-412E-B2D9-5F2237D4C9F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotHub.EcommerceApi", "IotHub.EcommerceApi\IotHub.EcommerceApi.csproj", "{CFC26CA1-8C7E-45EB-BCCE-8B1000FDC53E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotHub.EcommerceApi", "IotHub.EcommerceApi\IotHub.EcommerceApi.csproj", "{CFC26CA1-8C7E-45EB-BCCE-8B1000FDC53E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotHub.ConsoleSample", "IotHub.ConsoleSample\IotHub.ConsoleSample.csproj", "{BAA56D28-D485-428A-868E-A3310AC94A56}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{CFC26CA1-8C7E-45EB-BCCE-8B1000FDC53E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFC26CA1-8C7E-45EB-BCCE-8B1000FDC53E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CFC26CA1-8C7E-45EB-BCCE-8B1000FDC53E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAA56D28-D485-428A-868E-A3310AC94A56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAA56D28-D485-428A-868E-A3310AC94A56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAA56D28-D485-428A-868E-A3310AC94A56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAA56D28-D485-428A-868E-A3310AC94A56}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

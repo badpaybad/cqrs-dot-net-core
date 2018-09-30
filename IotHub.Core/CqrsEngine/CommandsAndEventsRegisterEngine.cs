@@ -1,5 +1,9 @@
 ﻿using IotHub.Core.Cqrs;
+using IotHub.Core.Cqrs.CqrsEngine;
 using IotHub.Core.Reflection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -30,6 +34,13 @@ namespace IotHub.Core.CqrsEngine
         public static void Init(string commandEventStorageConnectionString)
         {
             _connectionString = commandEventStorageConnectionString;
+
+            using(var db=new CommandEventStorageDbContext(_connectionString))
+            {
+                //db.Database.OpenConnection();
+                db.Database.EnsureCreated();
+              
+            }
         }
 
         public static bool AutoRegister()

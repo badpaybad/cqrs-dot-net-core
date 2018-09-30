@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Configuration;
 
-namespace IotHub.Core.Cqrs
+namespace IotHub.Core.Cqrs.CqrsEngine
 {
     internal class CommandEventStorageDbContext : DbContext
     {
@@ -21,7 +21,7 @@ namespace IotHub.Core.Cqrs
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySQL(_connectionString);
+            optionsBuilder.UseSqlServer(_connectionString);
         }
 
         public DbSet<CommandEventStorage> CommandEventStorages { get; set; }
@@ -50,8 +50,7 @@ namespace IotHub.Core.Cqrs
     {
         [Key]
         public Guid Id { get; set; }
-
-        [Key]
+        
         public Guid CommandEventId { get; set; }
 
         public int State { get; set; }
