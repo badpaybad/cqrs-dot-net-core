@@ -6,7 +6,7 @@ namespace IotHub.Core.Reflection
 {
   public static  class ExceptionExtensions
     {
-        public static string GetMessages(this Exception ex)
+        public static string GetAllMessages(this Exception ex)
         {
             if (ex == null) return string.Empty;
             string msg = string.Empty;

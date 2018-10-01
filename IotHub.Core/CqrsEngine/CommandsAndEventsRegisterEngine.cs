@@ -26,7 +26,17 @@ namespace IotHub.Core.CqrsEngine
 
         static CommandsAndEventsRegisterEngine()
         {
-
+            try
+            {
+                using (var db = new CommandEventStorageDbContext())
+                {
+                    db.Database.EnsureCreated();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + $"Can not connect to db {nameof(CommandEventStorageDbContext)}", ex);
+            }
         }
 
         public static bool AutoRegister()
@@ -76,7 +86,7 @@ namespace IotHub.Core.CqrsEngine
         {
             var allTypes = executingAssembly.GetTypes();
 
-             RegisterCommandsEventsForWorker(allTypes);
+            RegisterCommandsEventsForWorker(allTypes);
 
             var listHandler = allTypes.Where(t => typeof(ICqrsHandle).IsAssignableFrom(t)
                                                   && t.IsClass && !t.IsAbstract).ToList();
@@ -278,7 +288,7 @@ namespace IotHub.Core.CqrsEngine
             foreach (var a in listAction)
             {
                 Console.WriteLine("#begin evt to subscriber: " + i);
-               
+
                 a(e);
                 i++;
             }
@@ -346,7 +356,7 @@ namespace IotHub.Core.CqrsEngine
             {
                 Console.WriteLine("#fail cmd: " + c.CommandId + " " + t);
 
-                LogCommandState(c, CommandEventStorageState.Fail, ex.GetMessages(), ex);
+                LogCommandState(c, CommandEventStorageState.Fail, ex.GetAllMessages(), ex);
                 throw ex;
             }
 
@@ -367,49 +377,69 @@ namespace IotHub.Core.CqrsEngine
         //    }
         //}
 
+        //static void TryRun(Action a)
+        //{
+        //    ThreadPool.QueueUserWorkItem((o) =>
+        //        {
+        //            try
+        //            {
+
+        //                a();
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                Console.WriteLine(ex.Message);
+        //            }
+
+        //        });
+        //}
+
         private static void LogCommand(ICommand c)
         {
-            ThreadPool.QueueUserWorkItem((o) =>
-            {
-                using (var db = new CommandEventStorageDbContext())
-                {
-                    db.CommandEventStorages.Add(new CommandEventStorage()
-                    {
-                        CreatedDate = DateTime.Now,
-                        DataJson = JsonConvert.SerializeObject(c),
-                        DataType = c.GetType().FullName,
-                        Id = c.CommandId,
-                        IsCommand = true
-                    });
-                    db.SaveChanges();
-                }
+            //TryRun(() =>
+            //{
 
-            });
+            //});
+
+            using (var db = new CommandEventStorageDbContext())
+            {
+                db.CommandEventStorages.Add(new CommandEventStorage()
+                {
+                    CreatedDate = DateTime.Now,
+                    DataJson = JsonConvert.SerializeObject(c),
+                    DataType = c.GetType().FullName,
+                    Id = c.CommandId,
+                    IsCommand = true
+                });
+                db.SaveChanges();
+            }
 
             LogCommandState(c, CommandEventStorageState.Pending, "Pending", null);
         }
 
         private static void LogCommandState(ICommand c, CommandEventStorageState state, string msg, Exception ex)
         {
-            ThreadPool.QueueUserWorkItem((o) =>
+            if (ex != null)
             {
-                if (ex != null)
+                msg += "\r\n" + ex.StackTrace;
+            }
+            using (var db = new CommandEventStorageDbContext())
+            {
+                db.CommandEventStorageHistories.Add(new CommandEventStorageHistory()
                 {
-                    msg += "\r\n" + ex.StackTrace;
-                }
-                using (var db = new CommandEventStorageDbContext())
-                {
-                    db.CommandEventStorageHistories.Add(new CommandEventStorageHistory()
-                    {
-                        CommandEventId = c.CommandId,
-                        CreatedDate = DateTime.Now,
-                        Id = Guid.NewGuid(),
-                        Message = msg,
-                        State = (int)state
-                    });
-                    db.SaveChanges();
-                }
-            });
+                    CommandEventId = c.CommandId,
+                    CreatedDate = DateTime.Now,
+                    Id = Guid.NewGuid(),
+                    Message = msg,
+                    State = (int)state
+                });
+                db.SaveChanges();
+            }
+
+            //TryRun(() =>
+            //{
+
+            //});
         }
 
         public static bool CommandWorkerCanDequeue(string type)

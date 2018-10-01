@@ -1,5 +1,6 @@
 ﻿using IotHub.Core.Api;
 using IotHub.Core.Cqrs;
+using IotHub.Core.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
@@ -27,18 +28,21 @@ namespace IotHub.Core.CqrsEngine
                         Success = false,
                         StatusCode = HttpStatusCode.NotImplemented,
                         Message = "Not found command type",
-                        CommandId = cmd.CommandId
+                        CommandId = Guid.Empty
                     };
                 }
 
-                var o = jobj.ToObject(objectType);
+                var ocmd = (ICommand)jobj.ToObject(objectType);
+                
+                //ocmd.CommandId = cmd.CommandId;
+                //ocmd.TokenSession = cmd.TokenSession;
 
-                CommandEventSender.Send((ICommand)o, cmd.TokenSession);
+                CommandEventSender.Send(ocmd);
 
                 return new CommandResponse()
                 {
                     Success = true,
-                    CommandId = cmd.CommandId,
+                    CommandId = ocmd.CommandId,
                     Message = "Success",
                     StatusCode = HttpStatusCode.OK
                 };
@@ -47,8 +51,8 @@ namespace IotHub.Core.CqrsEngine
             {
                 return new CommandResponse()
                 {
-                    CommandId = cmd.CommandId,
-                    Message = ex.Message,
+                    CommandId = Guid.Empty,
+                    Message = ex.GetAllMessages(),
                     StatusCode = HttpStatusCode.BadGateway,
                     Success = false
                 };
@@ -59,10 +63,10 @@ namespace IotHub.Core.CqrsEngine
 
     public class CommandRequest
     {
-        public Guid CommandId { get; set; }
+        //public Guid CommandId { get; set; }
         public string CommandTypeFullName { get; set; }
         public string CommandDataJson { get; set; }
-        public string TokenSession { get; set; }
+        //public string TokenSession { get; set; }
     }
 
     public class CommandResponse:BaseResponse
