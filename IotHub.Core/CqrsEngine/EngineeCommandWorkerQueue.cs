@@ -13,18 +13,18 @@ namespace IotHub.Core.CqrsEngine
     {
         //in-memory queue, can be use redis queue, rabitmq ...
         // remember dispatched by type of command
-        static readonly ConcurrentDictionary<Type, ConcurrentQueue<ICommand>> _cmdDataQueue = new ConcurrentDictionary<Type, ConcurrentQueue<ICommand>>();
+        static readonly ConcurrentDictionary<string, ConcurrentQueue<ICommand>> _cmdDataQueue = new ConcurrentDictionary<string, ConcurrentQueue<ICommand>>();
 
-        static readonly ConcurrentDictionary<Type, List<Thread>> _cmdWorker = new ConcurrentDictionary<Type, List<Thread>>();
-        static readonly ConcurrentDictionary<Type, bool> _stopWorker = new ConcurrentDictionary<Type, bool>();
-        static readonly ConcurrentDictionary<Type, int> _workerCounterStoped = new ConcurrentDictionary<Type, int>();
-        static readonly ConcurrentDictionary<Type, bool> _workerStoped = new ConcurrentDictionary<Type, bool>();
+        static readonly ConcurrentDictionary<string, List<Thread>> _cmdWorker = new ConcurrentDictionary<string, List<Thread>>();
+        static readonly ConcurrentDictionary<string, bool> _stopWorker = new ConcurrentDictionary<string, bool>();
+        static readonly ConcurrentDictionary<string, int> _workerCounterStoped = new ConcurrentDictionary<string, int>();
+        static readonly ConcurrentDictionary<string, bool> _workerStoped = new ConcurrentDictionary<string, bool>();
         static readonly ConcurrentDictionary<string, Type> _cmdTypeName = new ConcurrentDictionary<string, Type>();
         static readonly object _locker = new object();
 
         public static void Push(ICommand cmd)
         {
-            var type = cmd.GetType();
+            var type = cmd.GetType().FullName;
 
             if (RedisServices.IsEnable)
             {
@@ -37,7 +37,7 @@ namespace IotHub.Core.CqrsEngine
                 }
                 else
                 {
-                    _cmdTypeName[type.FullName] = type;
+                    // _cmdTypeName[type] = type;
 
                     RedisServices.RedisDatabase
                         .ListLeftPush(queueName, JsonConvert.SerializeObject(cmd));
@@ -54,7 +54,7 @@ namespace IotHub.Core.CqrsEngine
                 }
                 else
                 {
-                    _cmdTypeName[type.FullName] = type;
+                    //_cmdTypeName[type] = type;
 
                     //in-memory queue, can be use redis queue, rabitmq ...
                     _cmdDataQueue[type] = new ConcurrentQueue<ICommand>();
@@ -66,12 +66,12 @@ namespace IotHub.Core.CqrsEngine
 
         }
 
-        private static string BuildRedisQueueName(Type type)
+        private static string BuildRedisQueueName(string type)
         {
-            return "EngineeCommandWorkerQueue_" + type.FullName;
+            return "EngineeCommandWorkerQueue_" + type;
         }
 
-        private static void InitFirstWorker(Type type)
+        private static void InitFirstWorker(string type)
         {
             while (_stopWorker.ContainsKey(type) && _stopWorker[type])
             {
@@ -101,10 +101,10 @@ namespace IotHub.Core.CqrsEngine
 
         static EngineeCommandWorkerQueue()
         {
-           
+
         }
 
-        static void WorkerDo(Type type)
+        static void WorkerDo(string type)
         {
             while (true)
             {
@@ -114,7 +114,8 @@ namespace IotHub.Core.CqrsEngine
                     {
                         try
                         {
-                            if (!CommandsAndEventsRegisterEngine.CommandWorkerCanDequeue(type))
+                            var canDequeue = CommandsAndEventsRegisterEngine.CommandWorkerCanDequeue(type);
+                            if (!canDequeue)
                             {
                                 continue;
                             }
@@ -122,18 +123,22 @@ namespace IotHub.Core.CqrsEngine
                             {
                                 var queueName = BuildRedisQueueName(type);
 
+                                var typeRegistered = CommandsAndEventsRegisterEngine.FindTypeOfCommandOrEvent(type);
+
                                 var cmdJson = RedisServices.RedisDatabase
                                     .ListRightPop(queueName);
                                 if (cmdJson.HasValue)
                                 {
-                                    var cmd = JsonConvert.DeserializeObject(cmdJson, type) as ICommand;
+                                    var cmd = JsonConvert.DeserializeObject(cmdJson, typeRegistered) as ICommand;
                                     if (cmd != null)
                                     {
                                         try
                                         {
                                             CommandsAndEventsRegisterEngine.ExecCommand(cmd);
-                                        } catch
+                                        }
+                                        catch (Exception ex)
                                         {
+                                            Console.WriteLine(ex.Message);
                                             RedisServices.RedisDatabase
                                        .ListLeftPush(queueName, cmdJson);
                                         }
@@ -203,7 +208,7 @@ namespace IotHub.Core.CqrsEngine
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static bool ResetToOneWorker(Type type)
+        public static bool ResetToOneWorker(string type)
         {
             _stopWorker[type] = true;
 
@@ -237,7 +242,7 @@ namespace IotHub.Core.CqrsEngine
             return true;
         }
 
-        public static bool AddAndStartWorker(Type type)
+        public static bool AddAndStartWorker(string type)
         {
             if (!_cmdWorker.ContainsKey(type) || _cmdWorker[type] == null || _cmdWorker[type].Count == 0)
             {
@@ -257,7 +262,7 @@ namespace IotHub.Core.CqrsEngine
             return true;
         }
 
-        public static void CountStatistic(Type type, out int queueDataCount, out int workerCount)
+        public static void CountStatistic(string type, out int queueDataCount, out int workerCount)
         {
             queueDataCount = 0;
             workerCount = 0;
@@ -280,7 +285,7 @@ namespace IotHub.Core.CqrsEngine
             }
         }
 
-        public static bool IsWorkerStopping(Type type)
+        public static bool IsWorkerStopping(string type)
         {
             bool val;
             if (_stopWorker.TryGetValue(type, out val))
@@ -298,7 +303,7 @@ namespace IotHub.Core.CqrsEngine
 
             foreach (var t in listCmd)
             {
-                InitFirstWorker(t);
+                InitFirstWorker(t.FullName);
             }
         }
 

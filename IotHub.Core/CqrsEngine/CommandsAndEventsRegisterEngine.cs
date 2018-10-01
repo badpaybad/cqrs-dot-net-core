@@ -13,14 +13,14 @@ namespace IotHub.Core.CqrsEngine
 {
     public static class CommandsAndEventsRegisterEngine
     {
-        static readonly Dictionary<Type, List<Action<IEvent>>> _eventHandler = new Dictionary<Type, List<Action<IEvent>>>();
-        static readonly Dictionary<Type, Action<ICommand>> _commandHandler = new Dictionary<Type, Action<ICommand>>();
+        static readonly Dictionary<string, List<Action<IEvent>>> _eventHandler = new Dictionary<string, List<Action<IEvent>>>();
+        static readonly Dictionary<string, Action<ICommand>> _commandHandler = new Dictionary<string, Action<ICommand>>();
 
         static object _eventLocker = new object();
         static object _commandLocker = new object();
 
-        static List<string> _commands = new List<string>();
-        static List<string> _events = new List<string>();
+        //static List<string> _commands = new List<string>();
+       // static List<string> _events = new List<string>();
 
         internal static readonly Dictionary<string, Type> _commandsEvents = new Dictionary<string, Type>();
 
@@ -35,18 +35,18 @@ namespace IotHub.Core.CqrsEngine
             {
                 _commandHandler.Clear();
             }
-            lock (_commands)
-            {
-                _commands.Clear();
-            }
+            //lock (_commands)
+            //{
+            //    _commands.Clear();
+            //}
             lock (_eventLocker)
             {
                 _eventHandler.Clear();
             }
-            lock (_events)
-            {
-                _events.Clear();
-            }
+            //lock (_events)
+            //{
+            //    _events.Clear();
+            //}
             List<Assembly> allAss = LoadAllDll();
 
             foreach (var assembly in allAss)
@@ -59,7 +59,7 @@ namespace IotHub.Core.CqrsEngine
 
         private static List<Assembly> LoadAllDll()
         {
-            //return AppDomain.CurrentDomain.GetAssemblies();
+           // return AppDomain.CurrentDomain.GetAssemblies();
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             List<Assembly> allAssemblies = new List<Assembly>();
             var dllFiles = Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories);
@@ -67,6 +67,8 @@ namespace IotHub.Core.CqrsEngine
             {
                 allAssemblies.Add(Assembly.LoadFile(dll));
             }
+            // return allAssemblies;
+            allAssemblies.AddRange( AppDomain.CurrentDomain.GetAssemblies());
             return allAssemblies;
         }
 
@@ -74,7 +76,7 @@ namespace IotHub.Core.CqrsEngine
         {
             var allTypes = executingAssembly.GetTypes();
 
-            RegisterCommandsEvents(allTypes);
+           // RegisterCommandsEvents(allTypes);
 
             var listHandler = allTypes.Where(t => typeof(ICqrsHandle).IsAssignableFrom(t)
                                                   && t.IsClass && !t.IsAbstract).ToList();
@@ -109,7 +111,9 @@ namespace IotHub.Core.CqrsEngine
                     {
                         lock (_eventLocker)
                         {
-                            var t = pParameterType;
+                            var t = pParameterType.FullName;
+
+                            RegisterCommandsEventsForWorker(pParameterType);
 
                             List<Action<IEvent>> ax;
 
@@ -133,26 +137,27 @@ namespace IotHub.Core.CqrsEngine
                         }
                         Console.WriteLine($"Regsitered method to process event type: {pParameterType}");
 
-                        lock (_events)
-                        {
-                            if (mi.DeclaringType != null)
-                            {
-                                _events.Add(pParameterType.FullName +
-                                              $" [{className}][{assemblyFullName}]");
-                            }
-                            else
-                            {
-                                _events.Add(pParameterType.FullName +
-                                            $" [{assemblyFullName}]");
-                            }
-                        }
+                        //lock (_events)
+                        //{
+                        //    if (mi.DeclaringType != null)
+                        //    {
+                        //        _events.Add(pParameterType.FullName +
+                        //                      $" [{className}][{assemblyFullName}]");
+                        //    }
+                        //    else
+                        //    {
+                        //        _events.Add(pParameterType.FullName +
+                        //                    $" [{assemblyFullName}]");
+                        //    }
+                        //}
                     }
 
                     if (typeof(ICommand).IsAssignableFrom(pParameterType))
                     {
                         lock (_commandLocker)
                         {
-                            var t = pParameterType;
+                            var t = pParameterType.FullName;
+                            RegisterCommandsEventsForWorker(pParameterType);
 
                             Action<ICommand> ax;
 
@@ -168,25 +173,25 @@ namespace IotHub.Core.CqrsEngine
                             };
                         }
                         Console.WriteLine($"Regsitered method to process command type: {pParameterType}");
-                        lock (_commands)
-                        {
-                            if (mi.DeclaringType != null)
-                            {
-                                _commands.Add(pParameterType.FullName +
-                                                $" [{className}][{assemblyFullName}]");
-                            }
-                            else
-                            {
-                                _commands.Add(pParameterType.FullName +
-                                              $" [{assemblyFullName}]");
-                            }
-                        }
+                        //lock (_commands)
+                        //{
+                        //    if (mi.DeclaringType != null)
+                        //    {
+                        //        _commands.Add(pParameterType.FullName +
+                        //                        $" [{className}][{assemblyFullName}]");
+                        //    }
+                        //    else
+                        //    {
+                        //        _commands.Add(pParameterType.FullName +
+                        //                      $" [{assemblyFullName}]");
+                        //    }
+                        //}
                     }
                 }
             }
         }
 
-        private static void RegisterCommandsEvents(Type[] allTypes)
+        private static void RegisterCommandsEventsForWorker(params Type[] allTypes)
         {
             var listCmds = allTypes.Where(t => typeof(ICommand).IsAssignableFrom(t)
                          && t.IsClass && !t.IsAbstract).ToList();
@@ -221,7 +226,7 @@ namespace IotHub.Core.CqrsEngine
 
         public static void RegisterEvent<T>(Action<T> handle) where T : IEvent
         {
-            var t = typeof(T);
+            var t = typeof(T).FullName;
             lock (_eventLocker)
             {
 
@@ -239,10 +244,10 @@ namespace IotHub.Core.CqrsEngine
                 _eventHandler[t] = ax;
             }
 
-            lock (_events)
-            {
-                _events.Add(t.FullName);
-            }
+            //lock (_events)
+            //{
+            //    _events.Add(t);
+            //}
         }
 
         internal static void PushEvent(IEvent e, bool execAsync = false)
@@ -259,7 +264,7 @@ namespace IotHub.Core.CqrsEngine
 
         internal static void ExecEvent(IEvent e)
         {
-            var t = e.GetType();
+            var t = e.GetType().FullName;
             List<Action<IEvent>> listAction;
             lock (_eventLocker)
             {
@@ -277,7 +282,7 @@ namespace IotHub.Core.CqrsEngine
 
         public static void RegisterCommand<T>(Action<T> handle) where T : ICommand
         {
-            var t = typeof(T);
+            var t = typeof(T).FullName;
             lock (_commandLocker)
             {
 
@@ -292,10 +297,10 @@ namespace IotHub.Core.CqrsEngine
                 _commandHandler[t] = (p) => handle((T)p);
             }
 
-            lock (_commands)
-            {
-                _commands.Add(t.FullName);
-            }
+            //lock (_commands)
+            //{
+            //    _commands.Add(t);
+            //}
         }
 
         internal static void PushCommand(ICommand c, bool execAsync = false)
@@ -314,7 +319,7 @@ namespace IotHub.Core.CqrsEngine
 
         internal static void ExecCommand(ICommand c)
         {
-            var t = c.GetType();
+            var t = c.GetType().FullName;
             Action<ICommand> a;
             lock (_commandLocker)
             {
@@ -336,20 +341,20 @@ namespace IotHub.Core.CqrsEngine
 
         }
 
-        public static List<string> GetEvents()
-        {
-            lock (_events)
-            {
-                return _events;
-            }
-        }
-        public static List<string> GetCommands()
-        {
-            lock (_commands)
-            {
-                return _commands;
-            }
-        }
+        //public static List<string> GetEvents()
+        //{
+        //    lock (_events)
+        //    {
+        //        return _events;
+        //    }
+        //}
+        //public static List<string> GetCommands()
+        //{
+        //    lock (_commands)
+        //    {
+        //        return _commands;
+        //    }
+        //}
 
         private static void LogCommand(ICommand c)
         {
@@ -396,12 +401,12 @@ namespace IotHub.Core.CqrsEngine
             });
         }
 
-        public static bool CommandWorkerCanDequeue(Type type)
+        public static bool CommandWorkerCanDequeue(string type)
         {
             return _commandHandler.ContainsKey(type);
         }
 
-        public static bool EventWorkerCanDequeue(Type type)
+        public static bool EventWorkerCanDequeue(string type)
         {
             return _eventHandler.ContainsKey(type);
         }
