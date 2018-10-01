@@ -20,7 +20,7 @@ namespace IotHub.Core.CqrsEngine
         static object _commandLocker = new object();
 
         //static List<string> _commands = new List<string>();
-       // static List<string> _events = new List<string>();
+        // static List<string> _events = new List<string>();
 
         internal static readonly Dictionary<string, Type> _commandsEvents = new Dictionary<string, Type>();
 
@@ -59,7 +59,7 @@ namespace IotHub.Core.CqrsEngine
 
         private static List<Assembly> LoadAllDll()
         {
-           // return AppDomain.CurrentDomain.GetAssemblies();
+            // return AppDomain.CurrentDomain.GetAssemblies();
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             List<Assembly> allAssemblies = new List<Assembly>();
             var dllFiles = Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories);
@@ -68,7 +68,7 @@ namespace IotHub.Core.CqrsEngine
                 allAssemblies.Add(Assembly.LoadFile(dll));
             }
             // return allAssemblies;
-            allAssemblies.AddRange( AppDomain.CurrentDomain.GetAssemblies());
+            allAssemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
             return allAssemblies;
         }
 
@@ -76,7 +76,7 @@ namespace IotHub.Core.CqrsEngine
         {
             var allTypes = executingAssembly.GetTypes();
 
-           // RegisterCommandsEvents(allTypes);
+             RegisterCommandsEventsForWorker(allTypes);
 
             var listHandler = allTypes.Where(t => typeof(ICqrsHandle).IsAssignableFrom(t)
                                                   && t.IsClass && !t.IsAbstract).ToList();
@@ -200,12 +200,12 @@ namespace IotHub.Core.CqrsEngine
 
             if (listCmds.Count > 0 || listEvts.Count > 0)
             {
-                foreach(var cmd in listCmds)
+                foreach (var cmd in listCmds)
                 {
                     _commandsEvents[cmd.FullName.ToLower()] = cmd;
                 }
 
-                foreach(var evt in listEvts)
+                foreach (var evt in listEvts)
                 {
                     _commandsEvents[evt.FullName.ToLower()] = evt;
                 }
@@ -216,7 +216,7 @@ namespace IotHub.Core.CqrsEngine
         {
             Type type = null;
             fullNameOrName = fullNameOrName.ToLower();
-            if(_commandsEvents.TryGetValue(fullNameOrName,out type))
+            if (_commandsEvents.TryGetValue(fullNameOrName, out type))
             {
                 return type;
             }
@@ -273,11 +273,17 @@ namespace IotHub.Core.CqrsEngine
                     throw new EntryPointNotFoundException($"Not found type: {t}. Check {nameof(CommandsAndEventsRegisterEngine)} or {nameof(CommandsAndEventsRegisterEngine.RegisterEvent)}");
                 }
             }
-
+            Console.WriteLine("#begin evt: " + e.EventId + " " + t);
+            var i = 0;
             foreach (var a in listAction)
             {
+                Console.WriteLine("#begin evt to subscriber: " + i);
+               
                 a(e);
+                i++;
             }
+            Console.WriteLine("#done evt: " + e.EventId + " " + t);
+
         }
 
         public static void RegisterCommand<T>(Action<T> handle) where T : ICommand
@@ -331,12 +337,17 @@ namespace IotHub.Core.CqrsEngine
 
             try
             {
+                Console.WriteLine("#start cmd: " + c.CommandId + " " + t);
                 a(c);
+                Console.WriteLine("#done cmd: " + c.CommandId + " " + t);
                 LogCommandState(c, CommandEventStorageState.Done, "Success", null);
             }
             catch (Exception ex)
             {
+                Console.WriteLine("#fail cmd: " + c.CommandId + " " + t);
+
                 LogCommandState(c, CommandEventStorageState.Fail, ex.GetMessages(), ex);
+                throw ex;
             }
 
         }
