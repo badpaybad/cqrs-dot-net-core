@@ -20,8 +20,8 @@ namespace IotHub.Core
                 var consoleFileApp = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appSettings.json");
 
                 var builder = new ConfigurationBuilder()
-                .AddJsonFile("appSettings.json")
-               ;
+                .AddJsonFile("appSettings.json");
+
                 if (File.Exists(consoleFileApp))
                 {
                     builder.AddJsonFile(consoleFileApp);

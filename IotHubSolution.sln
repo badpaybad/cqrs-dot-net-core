@@ -11,15 +11,23 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotHub.Core", "IotHub.Core\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotHub.EcommerceApi", "IotHub.EcommerceApi\IotHub.EcommerceApi.csproj", "{CFC26CA1-8C7E-45EB-BCCE-8B1000FDC53E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotHub.ConsoleSample", "IotHub.ConsoleSample\IotHub.ConsoleSample.csproj", "{BAA56D28-D485-428A-868E-A3310AC94A56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotHub.ConsoleSample", "IotHub.ConsoleSample\IotHub.ConsoleSample.csproj", "{BAA56D28-D485-428A-868E-A3310AC94A56}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotHub.SampleDomain", "IotHub.SampleDomain\IotHub.SampleDomain.csproj", "{732E0D72-1D74-4F31-9761-8326A12D4ADB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotHub.SampleDomain", "IotHub.SampleDomain\IotHub.SampleDomain.csproj", "{732E0D72-1D74-4F31-9761-8326A12D4ADB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotHub.UserDomain", "IotHub.UserDomain\IotHub.UserDomain.csproj", "{38FC25EC-C5FD-42AF-A9F3-C1BAC0E6508F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotHub.UserDomain", "IotHub.UserDomain\IotHub.UserDomain.csproj", "{38FC25EC-C5FD-42AF-A9F3-C1BAC0E6508F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotHub.OAuth", "IotHub.OAuth\IotHub.OAuth.csproj", "{AD003B16-AFC7-402C-8EB0-82F851C5F7CD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotHub.OAuth", "IotHub.OAuth\IotHub.OAuth.csproj", "{AD003B16-AFC7-402C-8EB0-82F851C5F7CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotHub.CommandsEvents", "IotHub.CommandsEvents\IotHub.CommandsEvents.csproj", "{91E6E1AA-DE8B-46B1-BA19-42CA9CD199A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotHub.CommandsEvents", "IotHub.CommandsEvents\IotHub.CommandsEvents.csproj", "{91E6E1AA-DE8B-46B1-BA19-42CA9CD199A4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domains", "Domains", "{2ABF8E20-FFBD-434E-A5A2-935A0FED0984}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Apis", "Apis", "{104E9C65-C5D3-4016-9ADA-76379655EED0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{ABE0972B-E388-406C-A28C-D4278744734F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Enginee", "Enginee", "{7011194D-7B83-440D-AC8F-BB0CB84E28FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -66,6 +74,15 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AEF4B7A4-707B-412E-B2D9-5F2237D4C9F2} = {ABE0972B-E388-406C-A28C-D4278744734F}
+		{CFC26CA1-8C7E-45EB-BCCE-8B1000FDC53E} = {104E9C65-C5D3-4016-9ADA-76379655EED0}
+		{BAA56D28-D485-428A-868E-A3310AC94A56} = {7011194D-7B83-440D-AC8F-BB0CB84E28FF}
+		{732E0D72-1D74-4F31-9761-8326A12D4ADB} = {2ABF8E20-FFBD-434E-A5A2-935A0FED0984}
+		{38FC25EC-C5FD-42AF-A9F3-C1BAC0E6508F} = {2ABF8E20-FFBD-434E-A5A2-935A0FED0984}
+		{AD003B16-AFC7-402C-8EB0-82F851C5F7CD} = {104E9C65-C5D3-4016-9ADA-76379655EED0}
+		{91E6E1AA-DE8B-46B1-BA19-42CA9CD199A4} = {ABE0972B-E388-406C-A28C-D4278744734F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C44E7C42-AFE0-40E9-A2DC-094349FF7F63}
