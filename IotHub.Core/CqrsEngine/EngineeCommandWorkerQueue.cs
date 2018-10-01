@@ -140,7 +140,7 @@ namespace IotHub.Core.CqrsEngine
                                         {
                                             Console.WriteLine(ex.Message);
                                             RedisServices.RedisDatabase
-                                       .ListLeftPush(queueName, cmdJson);
+                                            .ListLeftPush(queueName, cmdJson);
                                         }
                                     }
                                     else

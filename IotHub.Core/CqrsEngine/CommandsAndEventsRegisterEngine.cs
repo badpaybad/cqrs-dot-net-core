@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace IotHub.Core.CqrsEngine
 {
@@ -18,9 +19,6 @@ namespace IotHub.Core.CqrsEngine
 
         static object _eventLocker = new object();
         static object _commandLocker = new object();
-
-        //static List<string> _commands = new List<string>();
-        // static List<string> _events = new List<string>();
 
         internal static readonly Dictionary<string, Type> _commandsEvents = new Dictionary<string, Type>();
 
@@ -45,19 +43,13 @@ namespace IotHub.Core.CqrsEngine
             {
                 _commandHandler.Clear();
             }
-            //lock (_commands)
-            //{
-            //    _commands.Clear();
-            //}
+          
             lock (_eventLocker)
             {
                 _eventHandler.Clear();
             }
-            //lock (_events)
-            //{
-            //    _events.Clear();
-            //}
-            List<Assembly> allAss = LoadAllDll();
+          
+            List<Assembly> allAss = FindAllDll();
 
             foreach (var assembly in allAss)
             {
@@ -67,7 +59,7 @@ namespace IotHub.Core.CqrsEngine
             return true;
         }
 
-        private static List<Assembly> LoadAllDll()
+        private static List<Assembly> FindAllDll()
         {
             // return AppDomain.CurrentDomain.GetAssemblies();
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -145,21 +137,7 @@ namespace IotHub.Core.CqrsEngine
 
                             _eventHandler[t] = ax;
                         }
-                        Console.WriteLine($"Regsitered method to process event type: {pParameterType}");
-
-                        //lock (_events)
-                        //{
-                        //    if (mi.DeclaringType != null)
-                        //    {
-                        //        _events.Add(pParameterType.FullName +
-                        //                      $" [{className}][{assemblyFullName}]");
-                        //    }
-                        //    else
-                        //    {
-                        //        _events.Add(pParameterType.FullName +
-                        //                    $" [{assemblyFullName}]");
-                        //    }
-                        //}
+                        Console.WriteLine($"Regsitered method to process event type: {pParameterType}");                                           
                     }
 
                     if (typeof(ICommand).IsAssignableFrom(pParameterType))
@@ -182,20 +160,7 @@ namespace IotHub.Core.CqrsEngine
                                 mi.Invoke(cqrsHandler, new object[] { p });
                             };
                         }
-                        Console.WriteLine($"Regsitered method to process command type: {pParameterType}");
-                        //lock (_commands)
-                        //{
-                        //    if (mi.DeclaringType != null)
-                        //    {
-                        //        _commands.Add(pParameterType.FullName +
-                        //                        $" [{className}][{assemblyFullName}]");
-                        //    }
-                        //    else
-                        //    {
-                        //        _commands.Add(pParameterType.FullName +
-                        //                      $" [{assemblyFullName}]");
-                        //    }
-                        //}
+                        Console.WriteLine($"Regsitered method to process command type: {pParameterType}");                       
                     }
                 }
             }
@@ -210,14 +175,20 @@ namespace IotHub.Core.CqrsEngine
 
             if (listCmds.Count > 0 || listEvts.Count > 0)
             {
-                foreach (var cmd in listCmds)
+                lock (_commandLocker)
                 {
-                    _commandsEvents[cmd.FullName.ToLower()] = cmd;
+                    foreach (var cmd in listCmds)
+                    {
+                        _commandsEvents[cmd.FullName.ToLower()] = cmd;
+                    }
                 }
 
-                foreach (var evt in listEvts)
+                lock (_eventLocker)
                 {
-                    _commandsEvents[evt.FullName.ToLower()] = evt;
+                    foreach (var evt in listEvts)
+                    {
+                        _commandsEvents[evt.FullName.ToLower()] = evt;
+                    }
                 }
             }
         }
@@ -253,11 +224,7 @@ namespace IotHub.Core.CqrsEngine
 
                 _eventHandler[t] = ax;
             }
-
-            //lock (_events)
-            //{
-            //    _events.Add(t);
-            //}
+            RegisterCommandsEventsForWorker(typeof(T));
         }
 
         internal static void PushEvent(IEvent e, bool execAsync = false)
@@ -312,11 +279,7 @@ namespace IotHub.Core.CqrsEngine
 
                 _commandHandler[t] = (p) => handle((T)p);
             }
-
-            //lock (_commands)
-            //{
-            //    _commands.Add(t);
-            //}
+            RegisterCommandsEventsForWorker(typeof(T));
         }
 
         internal static void PushCommand(ICommand c, bool execAsync = false)
@@ -361,93 +324,57 @@ namespace IotHub.Core.CqrsEngine
             }
 
         }
-
-        //public static List<string> GetEvents()
-        //{
-        //    lock (_events)
-        //    {
-        //        return _events;
-        //    }
-        //}
-        //public static List<string> GetCommands()
-        //{
-        //    lock (_commands)
-        //    {
-        //        return _commands;
-        //    }
-        //}
-
-        //static void TryRun(Action a)
-        //{
-        //    ThreadPool.QueueUserWorkItem((o) =>
-        //        {
-        //            try
-        //            {
-
-        //                a();
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Console.WriteLine(ex.Message);
-        //            }
-
-        //        });
-        //}
-
+        
         private static void LogCommand(ICommand c)
         {
-            //TryRun(() =>
-            //{
-
-            //});
-
-            using (var db = new CommandEventStorageDbContext())
+            Task.Run(()=>
             {
-                db.CommandEventStorages.Add(new CommandEventStorage()
+                using (var db = new CommandEventStorageDbContext())
                 {
-                    CreatedDate = DateTime.Now,
-                    DataJson = JsonConvert.SerializeObject(c),
-                    DataType = c.GetType().FullName,
-                    Id = c.CommandId,
-                    IsCommand = true
-                });
-                db.SaveChanges();
-            }
+                    db.CommandEventStorages.Add(new CommandEventStorage()
+                    {
+                        CreatedDate = DateTime.Now,
+                        DataJson = JsonConvert.SerializeObject(c),
+                        DataType = c.GetType().FullName,
+                        Id = c.CommandId,
+                        IsCommand = true
+                    });
+                    db.SaveChanges();
+                }
 
+            });
+           
             LogCommandState(c, CommandEventStorageState.Pending, "Pending", null);
         }
 
         private static void LogCommandState(ICommand c, CommandEventStorageState state, string msg, Exception ex)
         {
-            if (ex != null)
-            {
-                msg += "\r\n" + ex.StackTrace;
-            }
-            using (var db = new CommandEventStorageDbContext())
-            {
-                db.CommandEventStorageHistories.Add(new CommandEventStorageHistory()
+           Task.Run(()=> {
+                if (ex != null)
                 {
-                    CommandEventId = c.CommandId,
-                    CreatedDate = DateTime.Now,
-                    Id = Guid.NewGuid(),
-                    Message = msg,
-                    State = (int)state
-                });
-                db.SaveChanges();
-            }
-
-            //TryRun(() =>
-            //{
-
-            //});
+                    msg += "\r\n" + ex.StackTrace;
+                }
+                using (var db = new CommandEventStorageDbContext())
+                {
+                    db.CommandEventStorageHistories.Add(new CommandEventStorageHistory()
+                    {
+                        CommandEventId = c.CommandId,
+                        CreatedDate = DateTime.Now,
+                        Id = Guid.NewGuid(),
+                        Message = msg,
+                        State = (int)state
+                    });
+                    db.SaveChanges();
+                }
+            });           
         }
 
-        public static bool CommandWorkerCanDequeue(string type)
+        internal static bool CommandWorkerCanDequeue(string type)
         {
             return _commandHandler.ContainsKey(type);
         }
 
-        public static bool EventWorkerCanDequeue(string type)
+        internal static bool EventWorkerCanDequeue(string type)
         {
             return _eventHandler.ContainsKey(type);
         }

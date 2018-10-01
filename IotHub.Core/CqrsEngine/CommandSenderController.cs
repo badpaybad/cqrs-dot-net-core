@@ -33,9 +33,6 @@ namespace IotHub.Core.CqrsEngine
                 }
 
                 var ocmd = (ICommand)jobj.ToObject(objectType);
-                
-                //ocmd.CommandId = cmd.CommandId;
-                //ocmd.TokenSession = cmd.TokenSession;
 
                 CommandEventSender.Send(ocmd);
 
@@ -63,10 +60,8 @@ namespace IotHub.Core.CqrsEngine
 
     public class CommandRequest
     {
-        //public Guid CommandId { get; set; }
         public string CommandTypeFullName { get; set; }
         public string CommandDataJson { get; set; }
-        //public string TokenSession { get; set; }
     }
 
     public class CommandResponse:BaseResponse
