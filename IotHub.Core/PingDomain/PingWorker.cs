@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace IotHub.Core.SampleHandles
+namespace IotHub.Core.PingDomain
 {
     public class PingWorker : ICommand
     {
