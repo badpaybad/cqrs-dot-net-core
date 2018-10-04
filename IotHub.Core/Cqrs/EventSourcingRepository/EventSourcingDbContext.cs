@@ -9,7 +9,7 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
     internal class EventSourcingDbContext :  AbstractMsSqlDbContext
     {
 
-        public EventSourcingDbContext(string connectionString) 
+        public EventSourcingDbContext() 
             : base(ConfigurationManagerExtensions.GetConnectionString("EventSourcingDbContext"))
         {
         }

@@ -13,12 +13,10 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
 
         //private static IDatabaseInitializer<EventSourcingDbContext> _databaseInitializer =
         //    new System.Data.Entity.CreateDatabaseIfNotExists<EventSourcingDbContext>();
-        private string _connectionString;
-        private IEventPublisher _eventPublisher;
+         private IEventPublisher _eventPublisher;
 
         public CqrsEventSourcingRepository(IEventPublisher eventPublisher, string connectionString)
         {
-            _connectionString = connectionString;
             _eventPublisher = eventPublisher;
             //_databaseInitializer.InitializeDatabase(new EventSourcingDbContext());
         }
@@ -27,7 +25,7 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
         {
             List<EventSourcingDescription> eventsHistory;
             var xaggregateId = aggregateId.ToString();
-            using (var db = new EventSourcingDbContext(_connectionString))
+            using (var db = new EventSourcingDbContext())
             {
                 eventsHistory = db.EventSoucings.AsNoTracking()
                     .Where(i => i.AggregateId.Equals(xaggregateId)
@@ -83,7 +81,7 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
             #region check lastest version
 
             long lastVersion=0;
-            using (var db = new EventSourcingDbContext(_connectionString))
+            using (var db = new EventSourcingDbContext())
             {
                 lastVersion = db.EventSoucings
                     .AsNoTracking()
@@ -126,7 +124,7 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
             }
 
             //save to event store db
-            using (var db = new EventSourcingDbContext(_connectionString))
+            using (var db = new EventSourcingDbContext())
             {
                 db.EventSoucings.AddRange(eventChanges);
                 db.SaveChanges();
