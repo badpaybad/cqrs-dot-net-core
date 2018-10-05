@@ -1,6 +1,7 @@
 ﻿using IotHub.Core.Cqrs;
 using IotHub.Core.Cqrs.CqrsEngine;
 using IotHub.Core.Reflection;
+using Microsoft.EntityFrameworkCore.Internal;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -24,17 +25,17 @@ namespace IotHub.Core.CqrsEngine
 
         static CommandsAndEventsRegisterEngine()
         {
-            try
-            {
-                using (var db = new CommandEventStorageDbContext())
-                {
-                    db.Database.EnsureCreated();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message + $"Can not connect to db {nameof(CommandEventStorageDbContext)}", ex);
-            }
+            //try
+            //{
+            //    using (var db = new CommandEventStorageDbContext())
+            //    {
+            //        db.Database.EnsureCreated();
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw new Exception(ex.Message + $"Can not connect to db {nameof(CommandEventStorageDbContext)}", ex);
+            //}
         }
 
         public static bool AutoRegister()
@@ -48,12 +49,19 @@ namespace IotHub.Core.CqrsEngine
             {
                 _eventHandler.Clear();
             }
-          
+
             List<Assembly> allAss = FindAllDll();
 
             foreach (var assembly in allAss)
             {
-                RegisterAssembly(assembly);
+                try
+                {
+                    RegisterAssembly(assembly);
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.GetAllMessages() + "\r\n" + "Can not register assembly: " + assembly.FullName);
+                }
             }
 
             return true;
@@ -64,14 +72,33 @@ namespace IotHub.Core.CqrsEngine
             // return AppDomain.CurrentDomain.GetAssemblies();
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             List<Assembly> allAssemblies = new List<Assembly>();
+
+            allAssemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
+
             var dllFiles = Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories);
             foreach (string dll in dllFiles)
             {
-                allAssemblies.Add(Assembly.LoadFile(dll));
+                if (File.Exists(dll))
+                {
+                    try
+                    {
+                        allAssemblies.Add(Assembly.LoadFile(dll));
+                    } catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.GetAllMessages()+"\r\n"+"Can not load dll: "+dll);
+                    }
+                }
             }
             // return allAssemblies;
-            allAssemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
-            return allAssemblies;
+        
+            Dictionary<string, Assembly> filter = new Dictionary<string, Assembly>();
+
+            foreach(var a in allAssemblies)
+            {
+                filter[a.FullName] = a;
+            }
+
+            return filter.Values.ToList();
         }
 
         public static void RegisterAssembly(Assembly executingAssembly)
@@ -84,9 +111,11 @@ namespace IotHub.Core.CqrsEngine
                                                   && t.IsClass && !t.IsAbstract).ToList();
 
             var assemblyFullName = executingAssembly.FullName;
-
-            Console.WriteLine(assemblyFullName);
-            Console.WriteLine($"Found {listHandler.Count} handle(s) to register to message buss");
+            if (listHandler.Count > 0)
+            {
+                Console.WriteLine(assemblyFullName);
+                Console.WriteLine($"Found {listHandler.Count} handle(s) to register to message buss");
+            }
 
             foreach (var handlerType in listHandler)
             {
