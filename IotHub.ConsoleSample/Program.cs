@@ -59,8 +59,6 @@ namespace IotHub.ConsoleSample
                         break;
                 }
             }
-
-
         }
 
         private static void MessiveSendCmd()

@@ -28,8 +28,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\IotHub.CommandsEvents\IotHub.CommandsEvents.csproj" />
     <ProjectReference Include="..\IotHub.Core\IotHub.Core.csproj" />
     <ProjectReference Include="..\IotHub.SampleDomain\IotHub.SampleDomain.csproj" />
+    <ProjectReference Include="..\IotHub.UserDomain\IotHub.UserDomain.csproj" />
   </ItemGroup>
 
 </Project>
