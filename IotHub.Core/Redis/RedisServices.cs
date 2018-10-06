@@ -6,7 +6,7 @@ using System.Text;
 
 namespace IotHub.Core.Redis
 {
-    public static class RedisServices
+    public static class RedisServices  
     {
         static IServer _server;
         static SocketManager _socketManager;
