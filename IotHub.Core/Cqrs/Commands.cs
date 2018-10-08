@@ -7,11 +7,13 @@ namespace IotHub.Core.Cqrs
 {
     public interface ICqrsHandle
     {
-        ICqrsEventSourcingRepository Repository { get; }
+       
     }
 
     public interface ICommandHandle<T> : ICqrsHandle where T : ICommand        
-    {      
+    {
+        ICqrsEventSourcingRepository Repository { get; }
+
         void Handle(T c);
     }
 

@@ -10,12 +10,9 @@ namespace IotHub.SampleDomainWithEventSourcing
         ICommandHandle<PublishSampleDomainWithEventSourcing>,
         ICommandHandle<UnpublishSampleDomainWithEventSourcing>
     {
-        public ICqrsEventSourcingRepository Repository
-            = new CqrsEventSourcingRepository(new EventPublisher());
-
-        ICqrsEventSourcingRepository ICqrsHandle.Repository { get; }
-            = new CqrsEventSourcingRepository(new EventPublisher());
-
+        public ICqrsEventSourcingRepository Repository { get; }
+           = new CqrsEventSourcingRepository(new EventPublisher());
+      
         public void Handle(CreateSampleDomainWithEventSourcing c)
         {
             var s = new SampleDomainAggregateRoot();

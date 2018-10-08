@@ -15,9 +15,7 @@ namespace IotHub.SampleDomainWithEventSourcing
          IEventHandle<SampleDomainWithEventSourcingChangedVersion>,
          IEventHandle<SampleDomainWithEventSourcingPublished>,
          IEventHandle<SampleDomainWithEventSourcingUnpublished>
-    {
-        public ICqrsEventSourcingRepository Repository { get; }
-
+    {       
         public void Handle(SampleDomainWithEventSourcingUnpublished e)
         {
             using (var db = new SampleDbContext())
