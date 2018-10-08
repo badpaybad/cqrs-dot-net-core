@@ -20,7 +20,6 @@ namespace IotHub.SampleDomainWithEventSourcing
         }
         void Apply(SampleDomainWithEventSourcingChangedVersion e)
         {
-            Id = e.Id;
             _version = e.SampleVersion;
         }
         void Apply(SampleDomainWithEventSourcingPublished e)
@@ -33,7 +32,7 @@ namespace IotHub.SampleDomainWithEventSourcing
             _published = false;
         }
 
-        public void Create(Guid id, string version)
+        public void Create(Guid id,string version)
         {
             ApplyChange(new SampleDomainWithEventSourcingCreated(id, version));
         }

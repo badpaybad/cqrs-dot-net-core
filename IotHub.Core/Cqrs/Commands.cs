@@ -11,8 +11,7 @@ namespace IotHub.Core.Cqrs
     }
 
     public interface ICommandHandle<T> : ICqrsHandle where T : ICommand        
-    {
-      
+    {      
         void Handle(T c);
     }
 
