@@ -6,8 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IotHub.Core.Cqrs.EventSourcingRepository
 {
-    public class CqrsEventSourcingRepository<TAggregate> : ICqrsEventSourcingRepository<TAggregate>
-        where TAggregate : AggregateRoot, new()
+    public class CqrsEventSourcingRepository
+        //<TAggregate> 
+        : ICqrsEventSourcingRepository
+       // where TAggregate : IAggregateRoot
     {
         //EventSourcingDbContext _eventSourcingDbContext = new EventSourcingDbContext();
 
@@ -15,29 +17,31 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
         //    new System.Data.Entity.CreateDatabaseIfNotExists<EventSourcingDbContext>();
          private IEventPublisher _eventPublisher;
 
-        public CqrsEventSourcingRepository(IEventPublisher eventPublisher, string connectionString)
+        public CqrsEventSourcingRepository(IEventPublisher eventPublisher)
         {
             _eventPublisher = eventPublisher;
             //_databaseInitializer.InitializeDatabase(new EventSourcingDbContext());
         }
 
-        public TAggregate Get(string aggregateId)
+        public TAggregate Get<TAggregate>(Guid aggregateId) where TAggregate:IAggregateRoot
         {
             List<EventSourcingDescription> eventsHistory;
             var xaggregateId = aggregateId.ToString();
+            var typeAggregate = typeof(TAggregate);
+
             using (var db = new EventSourcingDbContext())
             {
                 eventsHistory = db.EventSoucings.AsNoTracking()
                     .Where(i => i.AggregateId.Equals(xaggregateId)
-                                && i.AggregateType.Equals(typeof(TAggregate).AssemblyQualifiedName, StringComparison.OrdinalIgnoreCase)
+                                && i.AggregateType.Equals(typeAggregate.AssemblyQualifiedName, StringComparison.OrdinalIgnoreCase)
                     ).OrderBy(i => i.Version).ThenBy(i => i.CreatedDate).ToList();
             }
 
             if (eventsHistory.Any() == false)
                 throw new AggregateNotFoundException(
-                    $"Not found AggregateType: {typeof(TAggregate).FullName} with Id: {aggregateId}");
+                    $"Not found AggregateType: {typeAggregate.FullName} with Id: {aggregateId}");
 
-            TAggregate a = new TAggregate();
+            TAggregate a =(TAggregate) Activator.CreateInstance(typeAggregate);
 
             List<IEvent> convertedEvents = new List<IEvent>();
 
@@ -70,7 +74,7 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
         /// </summary>
         /// <param name="aggregate"></param>
         /// <param name="expectedVersion">-1: automatic get lastest version</param>
-        public void Save(TAggregate aggregate, int expectedVersion = -1)
+        public void Save<TAggregate>(TAggregate aggregate, int expectedVersion = -1) where TAggregate : IAggregateRoot
         {
             if (Guid.Empty.Equals(aggregate.Id)) throw new ArgumentNullException($"Aggregate with Id null");
 
@@ -113,7 +117,7 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
                 //build event data add to event store db
                 eventChanges.Add(new EventSourcingDescription()
                 {
-                    EsdId = Guid.NewGuid(),
+                    EsdId = e.PublishedEventId,
                     AggregateId = aggregate.Id,
                     AggregateType = typeof(TAggregate).AssemblyQualifiedName,
                     EventData = JsonConvert.SerializeObject(e),
@@ -143,7 +147,7 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
         /// CreateNew work same as Save(aggregate,-1)
         /// </summary>
         /// <param name="aggregate"></param>
-        public void CreateNew(TAggregate aggregate)
+        public void CreateNew<TAggregate>(TAggregate aggregate) where TAggregate : IAggregateRoot
         {
             Save(aggregate, -1);
         }
@@ -154,13 +158,15 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
         /// <param name="aggregateId"></param>
         /// <param name="aggregateDoActionsBeforeSave">Action before save</param>
         /// <param name="expectedVersion">-1: automatic get lastest version</param>
-        public void GetDoSave(string aggregateId
+        public void GetDoSave<TAggregate>(Guid aggregateId
             , Action<TAggregate> aggregateDoActionsBeforeSave
-            , int expectedVersion = -1)
+            , int expectedVersion = -1) where TAggregate : IAggregateRoot
         {
-            var aggregate = Get(aggregateId);
+            var aggregate = Get<TAggregate>(aggregateId);
             aggregateDoActionsBeforeSave(aggregate);
             Save(aggregate, expectedVersion);
         }
+
+       
     }
 }

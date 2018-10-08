@@ -71,7 +71,7 @@ namespace IotHub.ConsoleSample
 
                     CommandEventSender.Send(new PingWorker(DateTime.Now.ToString())
                     {
-                        CommandId = Guid.NewGuid(),
+                        PublishedCommandId = Guid.NewGuid(),
                         TokenSession = Guid.NewGuid().ToString()
                     });
                 }

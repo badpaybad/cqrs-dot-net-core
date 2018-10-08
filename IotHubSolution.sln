@@ -31,6 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Enginee", "Enginee", "{7011
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Uis", "Uis", "{69D2A486-1064-40F6-B6FF-3BE70F8B9CF0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotHub.SampleDomainWithEventSourcing", "IotHub.SampleDomainWithEventSourcing\IotHub.SampleDomainWithEventSourcing.csproj", "{4712B117-4295-40CE-A1AF-2E9B0E64EE20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,10 @@ Global
 		{91E6E1AA-DE8B-46B1-BA19-42CA9CD199A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91E6E1AA-DE8B-46B1-BA19-42CA9CD199A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91E6E1AA-DE8B-46B1-BA19-42CA9CD199A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4712B117-4295-40CE-A1AF-2E9B0E64EE20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4712B117-4295-40CE-A1AF-2E9B0E64EE20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4712B117-4295-40CE-A1AF-2E9B0E64EE20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4712B117-4295-40CE-A1AF-2E9B0E64EE20}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,6 +91,7 @@ Global
 		{38FC25EC-C5FD-42AF-A9F3-C1BAC0E6508F} = {2ABF8E20-FFBD-434E-A5A2-935A0FED0984}
 		{AD003B16-AFC7-402C-8EB0-82F851C5F7CD} = {104E9C65-C5D3-4016-9ADA-76379655EED0}
 		{91E6E1AA-DE8B-46B1-BA19-42CA9CD199A4} = {ABE0972B-E388-406C-A28C-D4278744734F}
+		{4712B117-4295-40CE-A1AF-2E9B0E64EE20} = {2ABF8E20-FFBD-434E-A5A2-935A0FED0984}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C44E7C42-AFE0-40E9-A2DC-094349FF7F63}

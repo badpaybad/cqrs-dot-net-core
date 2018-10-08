@@ -10,6 +10,10 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
     {
         public void Publish(IEvent e)
         {
+            if (e.PublishedEventId == Guid.Empty)
+            {
+                e.PublishedEventId = Guid.NewGuid();
+            }
             CommandsAndEventsRegisterEngine.PushEvent(e);
         }
     }

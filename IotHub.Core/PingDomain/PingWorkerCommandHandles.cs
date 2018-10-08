@@ -1,4 +1,5 @@
 ﻿using IotHub.Core.Cqrs;
+using IotHub.Core.Cqrs.EventSourcingRepository;
 using System;
 using System.IO;
 using System.Threading;
@@ -7,6 +8,8 @@ namespace IotHub.Core.PingDomain
 {
     public class PingWorkerCommandHandles : ICommandHandle<PingWorker>
     {
+        public ICqrsEventSourcingRepository Repository { get; }
+
         private static object _locker = new object();
         Random _rnd = new Random();
         public void Handle(PingWorker c)

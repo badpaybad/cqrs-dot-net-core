@@ -4,10 +4,15 @@ using IotHub.Core.Reflection;
 
 namespace IotHub.Core.Cqrs
 {
-    public abstract class AggregateRoot
-    {
+    public interface IAggregateRoot {
+        Guid Id { get; set; }
+        void LoadFromHistory(IList<IEvent> eventsHistory);
+        IList<IEvent> Changes { get; }
+    }
 
-        public abstract string Id { get; set; }
+    public abstract class AggregateRoot: IAggregateRoot
+    {
+        public abstract Guid Id { get; set; }
 
         private readonly IList<IEvent> _changes = new List<IEvent>();
         //private readonly Dictionary<Type, Action<IEvent>> _applyChanges = new Dictionary<Type, Action<IEvent>>();

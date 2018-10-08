@@ -23,7 +23,7 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
         [Key]
         public Guid EsdId { get; set; }
 
-        public string AggregateId { get; set; }
+        public Guid AggregateId { get; set; }
 
         public long Version { get; set; }
 

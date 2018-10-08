@@ -7,18 +7,18 @@ namespace IotHub.Core.CqrsEngine
     {
         public static void Send(ICommand cmd, bool asyncExec = true)
         {
-            if (cmd.CommandId == Guid.Empty)
+            if (cmd.PublishedCommandId == Guid.Empty)
             {
-                cmd.CommandId = Guid.NewGuid();
+                cmd.PublishedCommandId = Guid.NewGuid();
             }
             CommandsAndEventsRegisterEngine.PushCommand(cmd, asyncExec);
         }
 
         public static void Send(IEvent evt, bool asyncExec = true)
         {
-            if (evt.EventId == Guid.Empty)
+            if (evt.PublishedEventId == Guid.Empty)
             {
-                evt.EventId = Guid.NewGuid();
+                evt.PublishedEventId = Guid.NewGuid();
             }
             CommandsAndEventsRegisterEngine.PushEvent(evt, asyncExec);
         }

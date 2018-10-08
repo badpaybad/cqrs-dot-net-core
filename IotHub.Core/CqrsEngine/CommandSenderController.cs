@@ -39,7 +39,7 @@ namespace IotHub.Core.CqrsEngine
                 return new CommandResponse()
                 {
                     Success = true,
-                    CommandId = ocmd.CommandId,
+                    CommandId = ocmd.PublishedCommandId,
                     Message = "Success",
                     StatusCode = HttpStatusCode.OK
                 };

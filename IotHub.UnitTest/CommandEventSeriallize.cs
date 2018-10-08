@@ -14,7 +14,7 @@ namespace IotHub.UnitTesting
         public void SampleCommandData()
         {
             var x = JsonConvert.SerializeObject(new CreateSample() {
-                CommandId = Guid.NewGuid(),
+                PublishedCommandId = Guid.NewGuid(),
                 SampleId= Guid.NewGuid(),
                 TokenSession="token",
                 Version="version"

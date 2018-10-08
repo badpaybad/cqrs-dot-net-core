@@ -283,7 +283,7 @@ namespace IotHub.Core.CqrsEngine
                     throw new EntryPointNotFoundException($"Not found type: {t}. Check {nameof(CommandsAndEventsRegisterEngine)} or {nameof(CommandsAndEventsRegisterEngine.RegisterEvent)}");
                 }
             }
-            Console.WriteLine("#begin evt: " + e.EventId + " " + t);
+            Console.WriteLine("#begin evt: " + e.PublishedEventId + " " + t);
             var i = 0;
             foreach (var a in listAction)
             {
@@ -292,7 +292,7 @@ namespace IotHub.Core.CqrsEngine
                 a(e);
                 i++;
             }
-            Console.WriteLine("#done evt: " + e.EventId + " " + t);
+            Console.WriteLine("#done evt: " + e.PublishedEventId + " " + t);
 
         }
 
@@ -343,14 +343,14 @@ namespace IotHub.Core.CqrsEngine
 
             try
             {
-                Console.WriteLine("#start cmd: " + c.CommandId + " " + t);
+                Console.WriteLine("#start cmd: " + c.PublishedCommandId + " " + t);
                 a(c);
-                Console.WriteLine("#done cmd: " + c.CommandId + " " + t);
+                Console.WriteLine("#done cmd: " + c.PublishedCommandId + " " + t);
                 LogCommandState(c, CommandEventStorageState.Done, "Success", null);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("#fail cmd: " + c.CommandId + " " + t);
+                Console.WriteLine("#fail cmd: " + c.PublishedCommandId + " " + t);
 
                 LogCommandState(c, CommandEventStorageState.Fail, ex.GetAllMessages(), ex);
                 throw ex;
@@ -369,7 +369,7 @@ namespace IotHub.Core.CqrsEngine
                         CreatedDate = DateTime.Now,
                         DataJson = JsonConvert.SerializeObject(c),
                         DataType = c.GetType().FullName,
-                        Id = c.CommandId,
+                        Id = c.PublishedCommandId,
                         IsCommand = true
                     });
                     db.SaveChanges();
@@ -391,7 +391,7 @@ namespace IotHub.Core.CqrsEngine
                 {
                     db.CommandEventStorageHistories.Add(new CommandEventStorageHistory()
                     {
-                        CommandEventId = c.CommandId,
+                        CommandEventId = c.PublishedCommandId,
                         CreatedDate = DateTime.Now,
                         Id = Guid.NewGuid(),
                         Message = msg,
