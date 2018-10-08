@@ -20,7 +20,7 @@ namespace IotHub.SampleDomainWithEventSourcing
         {
             var s = new SampleDomainAggregateRoot();
             s.Create(c.Id, c.Version);
-            Repository.CreateNew(s);
+            Repository.CreateNew(s);            
         }
 
         public void Handle(ChangeVersionSampleDomainWithEventSourcing c)

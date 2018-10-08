@@ -5,6 +5,8 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
     public interface ICqrsEventSourcingRepository
         //<TAggregate> where TAggregate : IAggregateRoot
     {
+        IEventPublisher EventPublisher { get; }
+
         /// <summary>
         /// 
         /// </summary>

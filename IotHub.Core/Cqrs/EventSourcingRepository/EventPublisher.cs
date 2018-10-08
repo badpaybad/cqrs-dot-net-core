@@ -6,6 +6,11 @@ using IotHub.Core.CqrsEngine;
 
 namespace IotHub.Core.Cqrs.EventSourcingRepository
 {
+    public interface IEventPublisher
+    {
+        void Publish(IEvent e);
+    }
+
     public class EventPublisher : IEventPublisher
     {
         public void Publish(IEvent e)

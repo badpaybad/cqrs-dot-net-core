@@ -15,11 +15,11 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
 
         //private static IDatabaseInitializer<EventSourcingDbContext> _databaseInitializer =
         //    new System.Data.Entity.CreateDatabaseIfNotExists<EventSourcingDbContext>();
-         private IEventPublisher _eventPublisher;
+        public IEventPublisher EventPublisher { get; }
 
         public CqrsEventSourcingRepository(IEventPublisher eventPublisher)
         {
-            _eventPublisher = eventPublisher;
+            EventPublisher = eventPublisher;
             //_databaseInitializer.InitializeDatabase(new EventSourcingDbContext());
         }
 
@@ -139,7 +139,7 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
             {
                 //todo:publish event  
                 //DistributedServices.Publish(new DistributedCommand(e), true);
-                _eventPublisher.Publish(e);
+                EventPublisher.Publish(e);
             }
         }
 
