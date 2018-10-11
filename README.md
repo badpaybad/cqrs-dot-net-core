@@ -1,6 +1,11 @@
 # cqrs-dot-net-core
-cqrs dot net core 2.1
-redis https://github.com/MicrosoftArchive/redis
+## cqrs dot net core 2.1
+## redis https://github.com/MicrosoftArchive/redis
+
+## Pull code and build project IotHub.ConsoleSample
+## Run redis first 
+On window https://github.com/badpaybad/cqrs-dot-net-core/blob/master/Redis28.zip download -> extract -> redis-server.exe
+## Run project IotHub.ConsoleSample -> show up command window -> type command pubsub or pubsubmad to test
 
 
 Code structure
