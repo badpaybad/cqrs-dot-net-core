@@ -76,7 +76,7 @@ namespace IotHub.Core.CqrsEngine
             return "EngineeEventChannel_" + type;
         }
 
-       static string BuildRedisTopicName(string channel, string subscribe)
+        static string BuildRedisTopicName(string channel, string subscribe)
         {
             return channel + "_" + subscribe;
         }
@@ -119,12 +119,15 @@ namespace IotHub.Core.CqrsEngine
             var channel = BuildRedisChannelName(typeEvent);
             var allSubscribe = RedisServices.RedisDatabase.HashGetAll(channel);
 
-            foreach(var s in allSubscribe)
+            foreach (var s in allSubscribe)
             {
                 RedisServices.RedisDatabase.HashDelete(channel, s.Name);
             }
 
             RedisServices.RedisDatabase.KeyDelete(channel);
+
+
+            Console.WriteLine($"UnSubscribe all for channel: {channel}");
         }
 
         public static void Unsubscribe(string typeEvent, string subscriberName)
@@ -133,6 +136,9 @@ namespace IotHub.Core.CqrsEngine
             var topic = BuildRedisTopicName(channel, subscriberName);
             RedisServices.RedisSubscriber.Unsubscribe(topic);
             RedisServices.RedisDatabase.HashDelete(channel, subscriberName);
+
+
+            Console.WriteLine($"Unsubscribe for topic: {topic}");
         }
 
         public static void Subscribe(string typeEvent, Action<object> handle, string subscriberName)
@@ -142,14 +148,15 @@ namespace IotHub.Core.CqrsEngine
                 return;
             }
 
-             var channel = BuildRedisChannelName(typeEvent);
+            var channel = BuildRedisChannelName(typeEvent);
 
             if (RedisServices.RedisDatabase.HashGet(channel, subscriberName).HasValue)
             {
-                Console.WriteLine($"Subscriber: {subscriberName} already register for channel {channel}");
-                return;
+                Console.WriteLine($"Re-Subscriber: {subscriberName} register for channel {channel}");
+                Unsubscribe(channel, subscriberName);
+                //return;
             }
-                      
+
             RedisServices.RedisDatabase.HashSet(channel, subscriberName, subscriberName);
 
             var topic = BuildRedisTopicName(channel, subscriberName);
@@ -174,6 +181,8 @@ namespace IotHub.Core.CqrsEngine
                     Console.WriteLine($"Error subscriber {subscriberName} at channel {c} {ex.Message}");
                 }
             });
+
+            Console.WriteLine($"Subscribe for topic: {topic}");
         }
 
         static void WorkerDo(string type)
@@ -212,7 +221,7 @@ namespace IotHub.Core.CqrsEngine
                                         var evt = JsonConvert.DeserializeObject(evtJson, typeRegistered) as IEvent;
                                         if (evt != null)
                                         {
-                                            foreach(var subscriber in allSubscribe)
+                                            foreach (var subscriber in allSubscribe)
                                             {
                                                 var topic = BuildRedisTopicName(channel, subscriber.Name);
 
@@ -385,9 +394,22 @@ namespace IotHub.Core.CqrsEngine
             var listEvt = CommandsAndEventsRegisterEngine._commandsEvents.Values
                           .Where(i => typeof(IEvent).IsAssignableFrom(i)).ToList();
 
+            //var listSub = CommandsAndEventsRegisterEngine.GetAllSubscriber();
+
+            //foreach (var t in listEvt)
+            //{
+            //    var channel = BuildRedisChannelName(t.FullName);
+
+            //    foreach (var s in listSub)
+            //    {
+            //        RedisServices.RedisDatabase.HashDelete(channel, s);
+            //    }
+            //}
+
             foreach (var t in listEvt)
             {
                 InitFirstWorker(t.FullName);
+
             }
         }
 

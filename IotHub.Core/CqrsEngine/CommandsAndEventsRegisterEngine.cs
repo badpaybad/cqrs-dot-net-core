@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 namespace IotHub.Core.CqrsEngine
@@ -15,6 +16,8 @@ namespace IotHub.Core.CqrsEngine
     {
         static readonly Dictionary<string, List<Action<IEvent>>> _eventHandler = new Dictionary<string, List<Action<IEvent>>>();
         static readonly Dictionary<string, Action<ICommand>> _commandHandler = new Dictionary<string, Action<ICommand>>();
+
+        static readonly Dictionary<string, string> _listSubscriber = new Dictionary<string, string>();
 
         static object _eventLocker = new object();
         static object _commandLocker = new object();
@@ -81,7 +84,9 @@ namespace IotHub.Core.CqrsEngine
                 {
                     try
                     {
-                        allAssemblies.Add(Assembly.LoadFile(dll));
+                        //allAssemblies.Add(Assembly.LoadFile(dll));
+                      var assbl=  AssemblyLoadContext.Default.LoadFromAssemblyPath(dll);
+                        allAssemblies.Add(assbl);
                     }
                     catch (Exception ex)
                     {
@@ -176,6 +181,8 @@ namespace IotHub.Core.CqrsEngine
                             mi.Invoke(cqrsHandler, new object[] { o });
                         }, className);
 
+                        _listSubscriber[className] = className;
+
                         Console.WriteLine($"Regsitered method to process Event type: {pParameterType}");
                     }
 
@@ -269,6 +276,8 @@ namespace IotHub.Core.CqrsEngine
             {
                 handle((T)o);
             }, subscriberName);
+
+            _listSubscriber[subscriberName] = subscriberName;
         }
 
         internal static void PushEvent(IEvent e, bool execAsync = false)
@@ -305,6 +314,11 @@ namespace IotHub.Core.CqrsEngine
             }
             Console.WriteLine("#done evt: " + e.PublishedEventId + " " + t);
 
+        }
+
+        public static List<string> GetAllSubscriber()
+        {
+            return _listSubscriber.Keys.ToList();
         }
 
         public static void RegisterCommand<T>(Action<T> handle) where T : ICommand

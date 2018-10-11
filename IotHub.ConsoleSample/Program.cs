@@ -68,7 +68,10 @@ namespace IotHub.ConsoleSample
                         });
                         break;
                 }
+                cmd = (Console.ReadLine() ?? string.Empty).ToLower().Trim();
             }
+
+            Console.Read();
         }
 
         private static void MessiveSendCmd()
