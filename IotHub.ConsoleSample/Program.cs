@@ -1,4 +1,5 @@
-﻿using IotHub.Core.CqrsEngine;
+﻿using IotHub.CommandsEvents.SampleDomain;
+using IotHub.Core.CqrsEngine;
 using IotHub.Core.PingDomain;
 using IotHub.Core.Redis;
 using System;
@@ -28,7 +29,8 @@ namespace IotHub.ConsoleSample
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var ex = e.ExceptionObject;
-            if (ex!=null){
+            if (ex != null)
+            {
                 Console.WriteLine(ex);
                 Console.ReadLine();
             }
@@ -56,6 +58,14 @@ namespace IotHub.ConsoleSample
                         break;
                     case "start":
                         _stop = false;
+                        break;
+                    case "pubsub":
+                        EngineeEventWorkerQueue.Push(new SampleEventCreated()
+                        {
+                            PublishedEventId = Guid.NewGuid(),
+                            SampleVersion = DateTime.Now.ToString(),
+                            Version = 0
+                        });
                         break;
                 }
             }

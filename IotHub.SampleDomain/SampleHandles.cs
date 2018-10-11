@@ -9,6 +9,7 @@ namespace IotHub.SampleDomain
     public class SampleHandles : ICommandHandle<CreateSample>
     {
         public ICqrsEventSourcingRepository Repository { get; }
+        = new CqrsEventSourcingRepository(new EventPublisher());
 
         public void Handle(CreateSample c)
         {

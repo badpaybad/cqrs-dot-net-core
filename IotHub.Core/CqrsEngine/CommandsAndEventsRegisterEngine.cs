@@ -117,7 +117,7 @@ namespace IotHub.Core.CqrsEngine
                 return;
             }
 
-            Console.WriteLine(assemblyFullName);
+            Console.WriteLine($"+-{assemblyFullName}");
             Console.WriteLine($"Found {listHandler.Count} handle(s) to register to message buss");
 
             foreach (var handlerType in listHandler)
@@ -125,7 +125,7 @@ namespace IotHub.Core.CqrsEngine
                 var cqrsHandler = (ICqrsHandle)Activator.CreateInstance(handlerType);
                 if (cqrsHandler == null) continue;
 
-                Console.WriteLine($"Found Handle type: {cqrsHandler.GetType()}");
+                Console.WriteLine($"Found ICqrsHandle type: {cqrsHandler.GetType()}");
 
                 MethodInfo[] allMethod = cqrsHandler.GetType()
                     .GetMethods(BindingFlags.Public | BindingFlags.Instance);
@@ -176,7 +176,7 @@ namespace IotHub.Core.CqrsEngine
                             mi.Invoke(cqrsHandler, new object[] { o });
                         }, className);
 
-                        Console.WriteLine($"Regsitered method to process event type: {pParameterType}");
+                        Console.WriteLine($"Regsitered method to process Event type: {pParameterType}");
                     }
 
                     if (typeof(ICommand).IsAssignableFrom(pParameterType))
@@ -199,7 +199,7 @@ namespace IotHub.Core.CqrsEngine
                                 mi.Invoke(cqrsHandler, new object[] { p });
                             };
                         }
-                        Console.WriteLine($"Regsitered method to process command type: {pParameterType}");
+                        Console.WriteLine($"Regsitered method to process Command type: {pParameterType}");
                     }
                 }
             }
