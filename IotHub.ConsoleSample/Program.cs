@@ -58,6 +58,7 @@ namespace IotHub.ConsoleSample
                         break;
                     case "start":
                         _stop = false;
+                        MessiveSendCmd(null);
                         break;
                     case "pubsub":
                         EngineeEventWorkerQueue.Push(new SampleEventCreated()
@@ -67,6 +68,17 @@ namespace IotHub.ConsoleSample
                             Version = 0
                         });
                         break;
+                    case "pubsubmad":
+                        _stop = false;
+                        MessiveSendCmd(()=> {
+                            EngineeEventWorkerQueue.Push(new SampleEventCreated()
+                            {
+                                PublishedEventId = Guid.NewGuid(),
+                                SampleVersion = DateTime.Now.ToString(),
+                                Version = 0
+                            });
+                        });
+                        break;
                 }
                 cmd = (Console.ReadLine() ?? string.Empty).ToLower().Trim();
             }
@@ -74,19 +86,25 @@ namespace IotHub.ConsoleSample
             Console.Read();
         }
 
-        private static void MessiveSendCmd()
+        private static void MessiveSendCmd(Action a)
         {
             new Thread(() =>
             {
                 while (true)
                 {
                     if (_stop) return;
-
-                    CommandEventSender.Send(new PingWorker(DateTime.Now.ToString())
+                    if (a == null)
                     {
-                        PublishedCommandId = Guid.NewGuid(),
-                        TokenSession = Guid.NewGuid().ToString()
-                    });
+                        CommandEventSender.Send(new PingWorker(DateTime.Now.ToString())
+                        {
+                            PublishedCommandId = Guid.NewGuid(),
+                            TokenSession = Guid.NewGuid().ToString()
+                        });
+                    }
+                    else
+                    {
+                        a();
+                    }
                 }
             }).Start();
         }
