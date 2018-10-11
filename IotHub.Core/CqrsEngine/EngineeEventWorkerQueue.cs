@@ -13,18 +13,18 @@ namespace IotHub.Core.CqrsEngine
     {
         //in-memory queue, can be use redis queue, rabitmq ...
         // remember dispatched by type of event
-        static readonly ConcurrentDictionary<string, ConcurrentQueue<IEvent>> _cmdDataQueue = new ConcurrentDictionary<string, ConcurrentQueue<IEvent>>();
+        static readonly ConcurrentDictionary<string, ConcurrentQueue<IEvent>> _evtDataQueue = new ConcurrentDictionary<string, ConcurrentQueue<IEvent>>();
 
-        static readonly ConcurrentDictionary<string, List<Thread>> _cmdWorker = new ConcurrentDictionary<string, List<Thread>>();
+        static readonly ConcurrentDictionary<string, List<Thread>> _evtWorker = new ConcurrentDictionary<string, List<Thread>>();
         static readonly ConcurrentDictionary<string, bool> _stopWorker = new ConcurrentDictionary<string, bool>();
         static readonly ConcurrentDictionary<string, int> _workerCounterStoped = new ConcurrentDictionary<string, int>();
         static readonly ConcurrentDictionary<string, bool> _workerStoped = new ConcurrentDictionary<string, bool>();
-        static readonly ConcurrentDictionary<string, Type> _cmdTypeName = new ConcurrentDictionary<string, Type>();
+        static readonly ConcurrentDictionary<string, Type> _evtTypeName = new ConcurrentDictionary<string, Type>();
         static readonly object _locker = new object();
 
-        public static void Push(IEvent cmd)
+        public static void Push(IEvent evt)
         {
-            var type = cmd.GetType().FullName;
+            var type = evt.GetType().FullName;
 
             if (RedisServices.IsEnable)
             {
@@ -33,32 +33,32 @@ namespace IotHub.Core.CqrsEngine
                 if (RedisServices.RedisDatabase.KeyExists(queueName))
                 {
                     RedisServices.RedisDatabase
-                        .ListLeftPush(queueName, JsonConvert.SerializeObject(cmd));
+                        .ListLeftPush(queueName, JsonConvert.SerializeObject(evt));
                 }
                 else
                 {
                     //_cmdTypeName[type.FullName] = type;
 
                     RedisServices.RedisDatabase
-                        .ListLeftPush(queueName, JsonConvert.SerializeObject(cmd));
+                        .ListLeftPush(queueName, JsonConvert.SerializeObject(evt));
 
                     InitFirstWorker(type);
                 }
             }
             else
             {
-                if (_cmdDataQueue.ContainsKey(type) && _cmdDataQueue[type] != null)
+                if (_evtDataQueue.ContainsKey(type) && _evtDataQueue[type] != null)
                 {
                     //in-memory queue, can be use redis queue, rabitmq ...
-                    _cmdDataQueue[type].Enqueue(cmd);
+                    _evtDataQueue[type].Enqueue(evt);
                 }
                 else
                 {
                     //_cmdTypeName[type.FullName] = type;
 
                     //in-memory queue, can be use redis queue, rabitmq ...
-                    _cmdDataQueue[type] = new ConcurrentQueue<IEvent>();
-                    _cmdDataQueue[type].Enqueue(cmd);
+                    _evtDataQueue[type] = new ConcurrentQueue<IEvent>();
+                    _evtDataQueue[type].Enqueue(evt);
 
                     InitFirstWorker(type);
                 }
@@ -69,6 +69,16 @@ namespace IotHub.Core.CqrsEngine
         private static string BuildRedisQueueName(string type)
         {
             return "EngineeEventWorkerQueue_" + type;
+        }
+
+        static string BuildRedisChannelName(string type)
+        {
+            return "EngineeEventChannel_" + type;
+        }
+
+       static string BuildRedisTopicName(string channel, string subscribe)
+        {
+            return channel + "_" + subscribe;
         }
 
         private static void InitFirstWorker(string type)
@@ -82,18 +92,18 @@ namespace IotHub.Core.CqrsEngine
             lock (_locker)
             {
 
-                if (!_cmdWorker.ContainsKey(type) || _cmdWorker[type] == null || _cmdWorker[type].Count == 0)
+                if (!_evtWorker.ContainsKey(type) || _evtWorker[type] == null || _evtWorker[type].Count == 0)
                 {
                     _stopWorker[type] = false;
                     _workerCounterStoped[type] = 0;
                     _workerStoped[type] = false;
 
-                    _cmdWorker[type] = new List<Thread>();
+                    _evtWorker[type] = new List<Thread>();
                 }
 
                 var firstThread = new Thread(() => { WorkerDo(type); });
 
-                _cmdWorker[type].Add(firstThread);
+                _evtWorker[type].Add(firstThread);
 
                 firstThread.Start();
             }
@@ -102,6 +112,68 @@ namespace IotHub.Core.CqrsEngine
         static EngineeEventWorkerQueue()
         {
 
+        }
+
+        public static void UnsubscribeAll(string typeEvent)
+        {
+            var channel = BuildRedisChannelName(typeEvent);
+            var allSubscribe = RedisServices.RedisDatabase.HashGetAll(channel);
+
+            foreach(var s in allSubscribe)
+            {
+                RedisServices.RedisDatabase.HashDelete(channel, s.Name);
+            }
+
+            RedisServices.RedisDatabase.KeyDelete(channel);
+        }
+
+        public static void Unsubscribe(string typeEvent, string subscriberName)
+        {
+            var channel = BuildRedisChannelName(typeEvent);
+            var topic = BuildRedisTopicName(channel, subscriberName);
+            RedisServices.RedisSubscriber.Unsubscribe(topic);
+            RedisServices.RedisDatabase.HashDelete(channel, subscriberName);
+        }
+
+        public static void Subscribe(string typeEvent, Action<object> handle, string subscriberName)
+        {
+            if (RedisServices.IsEnable == false)
+            {
+                return;
+            }
+
+             var channel = BuildRedisChannelName(typeEvent);
+
+            if (RedisServices.RedisDatabase.HashGet(channel, subscriberName).HasValue)
+            {
+                Console.WriteLine($"Subscriber: {subscriberName} already register for channel {channel}");
+                return;
+            }
+                      
+            RedisServices.RedisDatabase.HashSet(channel, subscriberName, subscriberName);
+
+            var topic = BuildRedisTopicName(channel, subscriberName);
+
+            Redis.RedisServices.RedisSubscriber.Subscribe(topic, (c, evtJson) =>
+            {
+                try
+                {
+                    var typeRegistered = CommandsAndEventsRegisterEngine.FindTypeOfCommandOrEvent(typeEvent);
+
+                    if (evtJson.HasValue)
+                    {
+                        var evt = JsonConvert.DeserializeObject(evtJson, typeRegistered) as IEvent;
+                        if (evt != null)
+                        {
+                            handle(evt);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error subscriber {subscriberName} at channel {c} {ex.Message}");
+                }
+            });
         }
 
         static void WorkerDo(string type)
@@ -120,40 +192,55 @@ namespace IotHub.Core.CqrsEngine
                             }
                             if (RedisServices.IsEnable)
                             {
+                                var channel = BuildRedisChannelName(type);
+
+                                var allSubscribe = RedisServices.RedisDatabase.HashGetAll(channel);
+
+                                if (allSubscribe.Count() <= 0)
+                                {
+                                    Thread.Sleep(100);
+                                    continue;
+                                }
+
                                 var queueName = BuildRedisQueueName(type);
                                 var typeRegistered = CommandsAndEventsRegisterEngine.FindTypeOfCommandOrEvent(type);
-                                var evtJson = RedisServices.RedisDatabase
-                                    .ListRightPop(queueName);
+                                var evtJson = RedisServices.RedisDatabase.ListRightPop(queueName);
                                 if (evtJson.HasValue)
                                 {
-                                    var evt = JsonConvert.DeserializeObject(evtJson, typeRegistered) as IEvent;
-                                    if (evt != null)
+                                    try
                                     {
-                                        try
+                                        var evt = JsonConvert.DeserializeObject(evtJson, typeRegistered) as IEvent;
+                                        if (evt != null)
                                         {
-                                            CommandsAndEventsRegisterEngine.ExecEvent(evt);
+                                            foreach(var subscriber in allSubscribe)
+                                            {
+                                                var topic = BuildRedisTopicName(channel, subscriber.Name);
+
+                                                RedisServices.RedisSubscriber.Publish(topic, evtJson);
+                                            }
                                         }
-                                        catch(Exception ex)
+                                        else
                                         {
-                                            Console.WriteLine(ex.Message);
                                             RedisServices.RedisDatabase
-                                 .ListLeftPush(queueName, evtJson);
+                                            .ListLeftPush(queueName, evtJson);
                                         }
                                     }
-                                    else
+                                    catch (Exception ex)
                                     {
-                                        RedisServices.RedisDatabase
-                                        .ListLeftPush(queueName, evtJson);
+                                        RedisServices.RedisDatabase.ListLeftPush(queueName, evtJson);
+
+                                        Console.WriteLine(ex.Message);
                                     }
+
                                 }
                             }
                             else
                             {
-                                if (_cmdDataQueue.TryGetValue(type, out ConcurrentQueue<IEvent> cmdQueue) &&
-                                    cmdQueue != null)
+                                if (_evtDataQueue.TryGetValue(type, out ConcurrentQueue<IEvent> evtQueue) &&
+                                    evtQueue != null)
                                 {
                                     //in-memory queue, can be use redis queue, rabitmq ...
-                                    if (cmdQueue.TryDequeue(out IEvent evt) && evt != null)
+                                    if (evtQueue.TryDequeue(out IEvent evt) && evt != null)
                                     {
                                         CommandsAndEventsRegisterEngine.ExecEvent(evt);
                                     }
@@ -182,7 +269,7 @@ namespace IotHub.Core.CqrsEngine
 
                         lock (_locker)
                         {
-                            if (_cmdWorker.TryGetValue(type, out List<Thread> listThread))
+                            if (_evtWorker.TryGetValue(type, out List<Thread> listThread))
                             {
                                 if (listThread.Count == counter)
                                 {
@@ -231,7 +318,7 @@ namespace IotHub.Core.CqrsEngine
 
             _workerCounterStoped[type] = 0;
             _workerStoped[type] = false;
-            _cmdWorker[type].Clear();
+            _evtWorker[type].Clear();
             _stopWorker[type] = false;
 
             InitFirstWorker(type);
@@ -241,7 +328,7 @@ namespace IotHub.Core.CqrsEngine
 
         public static bool AddAndStartWorker(string type)
         {
-            if (!_cmdWorker.ContainsKey(type) || _cmdWorker[type] == null || _cmdWorker[type].Count == 0)
+            if (!_evtWorker.ContainsKey(type) || _evtWorker[type] == null || _evtWorker[type].Count == 0)
             {
                 InitFirstWorker(type);
             }
@@ -251,7 +338,7 @@ namespace IotHub.Core.CqrsEngine
                 {
                     _workerStoped[type] = false;
                     var thread = new Thread(() => WorkerDo(type));
-                    _cmdWorker[type].Add(thread);
+                    _evtWorker[type].Add(thread);
                     thread.Start();
                 }
             }
@@ -263,7 +350,7 @@ namespace IotHub.Core.CqrsEngine
         {
             queueDataCount = 0;
             workerCount = 0;
-            if (_cmdWorker.TryGetValue(type, out List<Thread> list) && list != null)
+            if (_evtWorker.TryGetValue(type, out List<Thread> list) && list != null)
             {
                 workerCount = list.Count;
             }
@@ -275,7 +362,7 @@ namespace IotHub.Core.CqrsEngine
             }
             else
             {
-                if (_cmdDataQueue.TryGetValue(type, out ConcurrentQueue<IEvent> queue) && queue != null)
+                if (_evtDataQueue.TryGetValue(type, out ConcurrentQueue<IEvent> queue) && queue != null)
                 {
                     queueDataCount = queue.Count;
                 }
@@ -308,7 +395,7 @@ namespace IotHub.Core.CqrsEngine
         {
             lock (_locker)
             {
-                return _cmdTypeName.Select(i => i.Key).ToList();
+                return _evtTypeName.Select(i => i.Key).ToList();
             }
         }
 
@@ -316,7 +403,7 @@ namespace IotHub.Core.CqrsEngine
         {
             lock (_locker)
             {
-                return _cmdTypeName[fullName];
+                return _evtTypeName[fullName];
             }
         }
     }

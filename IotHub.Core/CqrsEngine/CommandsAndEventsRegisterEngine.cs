@@ -1,14 +1,12 @@
 ﻿using IotHub.Core.Cqrs;
 using IotHub.Core.Cqrs.CqrsEngine;
 using IotHub.Core.Reflection;
-using Microsoft.EntityFrameworkCore.Internal;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace IotHub.Core.CqrsEngine
@@ -44,7 +42,7 @@ namespace IotHub.Core.CqrsEngine
             {
                 _commandHandler.Clear();
             }
-          
+
             lock (_eventLocker)
             {
                 _eventHandler.Clear();
@@ -58,10 +56,10 @@ namespace IotHub.Core.CqrsEngine
                 {
                     RegisterAssembly(assembly);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    Console.WriteLine( "Can not register assembly: " + assembly.FullName);
-                    Console.WriteLine("- "+ ex.GetAllMessages());
+                    Console.WriteLine("Can not register assembly: " + assembly.FullName);
+                    Console.WriteLine("- " + ex.GetAllMessages());
                 }
             }
 
@@ -74,7 +72,7 @@ namespace IotHub.Core.CqrsEngine
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             List<Assembly> allAssemblies = new List<Assembly>();
 
-           allAssemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
+            allAssemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
 
             var dllFiles = Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories);
             foreach (string dll in dllFiles)
@@ -84,17 +82,18 @@ namespace IotHub.Core.CqrsEngine
                     try
                     {
                         allAssemblies.Add(Assembly.LoadFile(dll));
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
-                        Console.WriteLine(ex.GetAllMessages()+"\r\n"+"Can not load dll: "+dll);
+                        Console.WriteLine(ex.GetAllMessages() + "\r\n" + "Can not load dll: " + dll);
                     }
                 }
             }
             // return allAssemblies;
-        
+
             Dictionary<string, Assembly> filter = new Dictionary<string, Assembly>();
 
-            foreach(var a in allAssemblies)
+            foreach (var a in allAssemblies)
             {
                 filter[a.FullName] = a;
             }
@@ -114,7 +113,7 @@ namespace IotHub.Core.CqrsEngine
             var assemblyFullName = executingAssembly.FullName;
             if (listHandler.Count <= 0)
             {
-                Console.WriteLine("Not found ICqrsHandle in "+assemblyFullName);
+                Console.WriteLine("Not found ICqrsHandle in " + assemblyFullName);
                 return;
             }
 
@@ -141,13 +140,12 @@ namespace IotHub.Core.CqrsEngine
 
                     var pParameterType = mi.GetParameters().SingleOrDefault().ParameterType;
 
-                    var className = mi.DeclaringType.FullName;
                     if (typeof(IEvent).IsAssignableFrom(pParameterType))
                     {
+                        var t = pParameterType.FullName;
+
                         lock (_eventLocker)
                         {
-                            var t = pParameterType.FullName;
-
                             RegisterCommandsEventsForWorker(pParameterType);
 
                             List<Action<IEvent>> ax;
@@ -170,7 +168,15 @@ namespace IotHub.Core.CqrsEngine
 
                             _eventHandler[t] = ax;
                         }
-                        Console.WriteLine($"Regsitered method to process event type: {pParameterType}");                                           
+
+                        var className = mi.DeclaringType.FullName;
+
+                        EngineeEventWorkerQueue.Subscribe(t, (o) =>
+                        {
+                            mi.Invoke(cqrsHandler, new object[] { o });
+                        }, className);
+
+                        Console.WriteLine($"Regsitered method to process event type: {pParameterType}");
                     }
 
                     if (typeof(ICommand).IsAssignableFrom(pParameterType))
@@ -193,7 +199,7 @@ namespace IotHub.Core.CqrsEngine
                                 mi.Invoke(cqrsHandler, new object[] { p });
                             };
                         }
-                        Console.WriteLine($"Regsitered method to process command type: {pParameterType}");                       
+                        Console.WriteLine($"Regsitered method to process command type: {pParameterType}");
                     }
                 }
             }
@@ -238,7 +244,7 @@ namespace IotHub.Core.CqrsEngine
             return null;
         }
 
-        public static void RegisterEvent<T>(Action<T> handle) where T : IEvent
+        public static void RegisterEvent<T>(Action<T> handle, string subscriberName) where T : IEvent
         {
             var t = typeof(T).FullName;
             lock (_eventLocker)
@@ -258,6 +264,11 @@ namespace IotHub.Core.CqrsEngine
                 _eventHandler[t] = ax;
             }
             RegisterCommandsEventsForWorker(typeof(T));
+
+            EngineeEventWorkerQueue.Subscribe(t, (o) =>
+            {
+                handle((T)o);
+            }, subscriberName);
         }
 
         internal static void PushEvent(IEvent e, bool execAsync = false)
@@ -357,10 +368,10 @@ namespace IotHub.Core.CqrsEngine
             }
 
         }
-        
+
         private static void LogCommand(ICommand c)
         {
-            Task.Run(()=>
+            Task.Run(() =>
             {
                 using (var db = new CommandEventStorageDbContext())
                 {
@@ -376,13 +387,14 @@ namespace IotHub.Core.CqrsEngine
                 }
 
             });
-           
+
             LogCommandState(c, CommandEventStorageState.Pending, "Pending", null);
         }
 
         private static void LogCommandState(ICommand c, CommandEventStorageState state, string msg, Exception ex)
         {
-           Task.Run(()=> {
+            Task.Run(() =>
+            {
                 if (ex != null)
                 {
                     msg += "\r\n" + ex.StackTrace;
@@ -399,7 +411,7 @@ namespace IotHub.Core.CqrsEngine
                     });
                     db.SaveChanges();
                 }
-            });           
+            });
         }
 
         internal static bool CommandWorkerCanDequeue(string type)
