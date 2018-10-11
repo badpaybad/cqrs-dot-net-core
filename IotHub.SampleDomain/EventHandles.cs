@@ -1,5 +1,6 @@
 ﻿using IotHub.CommandsEvents.SampleDomain;
 using IotHub.Core.Cqrs;
+using Newtonsoft.Json;
 using System;
 
 namespace IotHub.SampleDomain
@@ -9,6 +10,7 @@ namespace IotHub.SampleDomain
         public void Handle(SampleEventCreated e)
         {
             Console.WriteLine("Subsriber SampleDomainEventHandle");
+            Console.WriteLine(JsonConvert.SerializeObject(e));
         }
     }
 
@@ -17,6 +19,7 @@ namespace IotHub.SampleDomain
         public void Handle(SampleEventCreated e)
         {
             Console.WriteLine("Subsriber SampleDomainWorkfollowEventHandle");
+            Console.WriteLine(JsonConvert.SerializeObject(e));
         }
     }
 }
