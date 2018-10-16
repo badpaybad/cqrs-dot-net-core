@@ -7,7 +7,7 @@ namespace IotHub.CommandsEvents.SampleDomain
 {
     public class SampleEventCreated : IEvent
     {
-        public Guid PublishedEventId { get; set; }
+        public Guid? PublishedEventId { get; set; }
         public long Version { get; set; }
 
         public string SampleVersion { get; set; }

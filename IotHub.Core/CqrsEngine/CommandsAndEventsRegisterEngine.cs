@@ -394,7 +394,7 @@ namespace IotHub.Core.CqrsEngine
                         CreatedDate = DateTime.Now,
                         DataJson = JsonConvert.SerializeObject(c),
                         DataType = c.GetType().FullName,
-                        Id = c.PublishedCommandId,
+                        Id = c.PublishedCommandId.Value,
                         IsCommand = true
                     });
                     db.SaveChanges();
@@ -417,7 +417,7 @@ namespace IotHub.Core.CqrsEngine
                 {
                     db.CommandEventStorageHistories.Add(new CommandEventStorageHistory()
                     {
-                        CommandEventId = c.PublishedCommandId,
+                        CommandEventId = c.PublishedCommandId.Value,
                         CreatedDate = DateTime.Now,
                         Id = Guid.NewGuid(),
                         Message = msg,

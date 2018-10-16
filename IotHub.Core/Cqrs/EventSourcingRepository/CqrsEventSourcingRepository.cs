@@ -117,7 +117,7 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
                 //build event data add to event store db
                 eventChanges.Add(new EventSourcingDescription()
                 {
-                    EsdId = e.PublishedEventId,
+                    EsdId = e.PublishedEventId.Value,
                     AggregateId = aggregate.Id,
                     AggregateType = typeof(TAggregate).AssemblyQualifiedName,
                     EventData = JsonConvert.SerializeObject(e),

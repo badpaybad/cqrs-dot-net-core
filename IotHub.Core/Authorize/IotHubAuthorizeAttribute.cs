@@ -10,13 +10,13 @@ namespace IotHub.Core.Authorize
         public void OnResourceExecuted(ResourceExecutedContext context)
         {
             //todo: no working?
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
             //todo: no working?
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
     //public class IotHubAuthorizeAttribute : TypeFilterAttribute//Attribute, IAuthorizationFilter

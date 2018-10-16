@@ -14,7 +14,7 @@ namespace IotHub.Core.PingDomain
             Data = data;
         }
 
-        public Guid PublishedCommandId { get; set; } = Guid.NewGuid();
+        public Guid? PublishedCommandId { get; set; } = Guid.NewGuid();
         public string TokenSession { get; set; }
     }
 

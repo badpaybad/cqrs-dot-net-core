@@ -14,7 +14,7 @@ namespace IotHub.CommandsEvents.SampleDomainWithEventSourcing
             this.SampleVersion = sampleVersion;
         }
 
-        public Guid PublishedEventId { get; set; }
+        public Guid? PublishedEventId { get; set; }
       public  long Version { get; set; }
     }
 
@@ -29,7 +29,7 @@ namespace IotHub.CommandsEvents.SampleDomainWithEventSourcing
             this.SampleVersion = sampleVersion;
         }
 
-        public Guid PublishedEventId { get; set; }
+        public Guid? PublishedEventId { get; set; }
         public long Version { get; set; }
     }
 
@@ -41,7 +41,7 @@ namespace IotHub.CommandsEvents.SampleDomainWithEventSourcing
         {
             Id = id;
         }
-        public Guid PublishedEventId { get; set; }
+        public Guid? PublishedEventId { get; set; }
         public long Version { get; set; }
     }
     public class SampleDomainWithEventSourcingUnpublished : IEvent
@@ -52,7 +52,7 @@ namespace IotHub.CommandsEvents.SampleDomainWithEventSourcing
         {
             Id = id;
         }
-        public Guid PublishedEventId { get; set; }
+        public Guid? PublishedEventId { get; set; }
         public long Version { get; set; }
     }
 }

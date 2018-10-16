@@ -8,7 +8,7 @@ namespace IotHub.Core.CqrsEngine
     {
         public static void Send(ICommand cmd)
         {
-            if (cmd.PublishedCommandId == Guid.Empty)
+            if (cmd.PublishedCommandId == null || cmd.PublishedCommandId == Guid.Empty)
             {
                 cmd.PublishedCommandId = Guid.NewGuid();
             }
@@ -17,7 +17,7 @@ namespace IotHub.Core.CqrsEngine
 
         public static void Send(IEvent evt)
         {
-            if (evt.PublishedEventId == Guid.Empty)
+            if (evt.PublishedEventId == null || evt.PublishedEventId == Guid.Empty)
             {
                 evt.PublishedEventId = Guid.NewGuid();
             }

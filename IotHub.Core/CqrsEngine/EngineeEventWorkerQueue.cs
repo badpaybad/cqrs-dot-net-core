@@ -160,8 +160,7 @@ namespace IotHub.Core.CqrsEngine
 
             if (RedisServices.RedisDatabase.HashGet(channel, subscriberName).HasValue)
             {
-                Console.WriteLine($"Re-Subscriber: {subscriberName} register for channel {channel}");
-                Unsubscribe(channel, subscriberName);
+                Unsubscribe(typeEvent, subscriberName);
                 //return;
             }
 

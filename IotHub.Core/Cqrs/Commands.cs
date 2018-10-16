@@ -1,16 +1,14 @@
 ﻿using IotHub.Core.Cqrs.EventSourcingRepository;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace IotHub.Core.Cqrs
 {
     public interface ICqrsHandle
     {
-       
+
     }
 
-    public interface ICommandHandle<T> : ICqrsHandle where T : ICommand        
+    public interface ICommandHandle<T> : ICqrsHandle where T : ICommand
     {
         ICqrsEventSourcingRepository Repository { get; }
 
@@ -19,7 +17,7 @@ namespace IotHub.Core.Cqrs
 
     public interface ICommand
     {
-         Guid PublishedCommandId { get; set; }
+        Guid? PublishedCommandId { get; set; }
         string TokenSession { get; set; }
     }
 
