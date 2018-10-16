@@ -6,7 +6,10 @@
 ## Run redis first 
 On window https://github.com/badpaybad/cqrs-dot-net-core/blob/master/Redis28.zip download -> extract -> redis-server.exe
 ## Run project IotHub.ConsoleSample -> show up command window -> type command pubsub or pubsubmad to test
-
+				cd\
+				D:
+				cd D:\work\cqrs-dot-net-core\IotHub.ConsoleSample\bin\Debug\netcoreapp2.1
+				dotnet IotHub.ConsoleSample.dll
 
 Code structure
 https://drive.google.com/open?id=15n6s2WaxVN33BTBop0XXjjlxlYHuMz_u
