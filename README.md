@@ -6,7 +6,10 @@
 ## Run redis first 
 On window https://github.com/badpaybad/cqrs-dot-net-core/blob/master/Redis28.zip download -> extract -> redis-server.exe
 ## Run project IotHub.ConsoleSample -> show up command window -> type command pubsub or pubsubmad to test
-
+				cd\
+				D:
+				cd D:\work\cqrs-dot-net-core\IotHub.ConsoleSample\bin\Debug\netcoreapp2.1
+				dotnet IotHub.ConsoleSample.dll
 
 Code structure
 https://drive.google.com/open?id=15n6s2WaxVN33BTBop0XXjjlxlYHuMz_u
@@ -33,10 +36,9 @@ Run project IotHub.EcommerceApi you will got eg: https://localhost:5001/swagger/
 
 Sample data to post to /api/CommandSender,  should modify PublishedCommandId, it should be unique
 
-`
-{
-"CommandTypeFullName":"IotHub.CommandsEvents.SampleDomain.CreateSample",
-"CommandDataJson":'{"PublishedCommandId":"ac349cdc-5b50-4d87-b8fe-296d67745eae","Version":0,"SampleVersion":"10/12/2018 6:44:29 AM", "TokenSession":"",
-"SampleId":"ac349cdc-5b50-4d87-b8fe-296d67745eae"}'
-}
-`
+				{
+				"CommandTypeFullName":"IotHub.CommandsEvents.SampleDomain.CreateSample",
+				"CommandDataJson":'{"PublishedCommandId":"ac349cdc-5b50-4d87-b8fe-296d67745eae","Version":0,"SampleVersion":"10/12/2018 6:44:29 AM", "TokenSession":"",
+				"SampleId":"ac349cdc-5b50-4d87-b8fe-296d67745eae"}'
+				}
+
