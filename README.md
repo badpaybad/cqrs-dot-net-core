@@ -32,8 +32,11 @@ https://drive.google.com/open?id=15n6s2WaxVN33BTBop0XXjjlxlYHuMz_u
 Run project IotHub.EcommerceApi you will got eg: https://localhost:5001/swagger/index.html?url=/swagger/v1/swagger.json#/CommandSender
 
 Sample data to post to /api/CommandSender,  should modify PublishedCommandId, it should be unique
-		{
-		"CommandTypeFullName":"IotHub.CommandsEvents.SampleDomain.CreateSample",
-		"CommandDataJson":'{"PublishedCommandId":"ac349cdc-5b50-4d87-b8fe-296d67745eae","Version":0,"SampleVersion":"10/12/2018 6:44:29 AM", "TokenSession":"",
-		"SampleId":"ac349cdc-5b50-4d87-b8fe-296d67745eae"}'
-		}
+
+`
+{
+"CommandTypeFullName":"IotHub.CommandsEvents.SampleDomain.CreateSample",
+"CommandDataJson":'{"PublishedCommandId":"ac349cdc-5b50-4d87-b8fe-296d67745eae","Version":0,"SampleVersion":"10/12/2018 6:44:29 AM", "TokenSession":"",
+"SampleId":"ac349cdc-5b50-4d87-b8fe-296d67745eae"}'
+}
+`
