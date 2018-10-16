@@ -37,8 +37,6 @@ namespace IotHub.Core.CqrsEngine
                 }
                 else
                 {
-                    //_cmdTypeName[type.FullName] = type;
-
                     RedisServices.RedisDatabase
                         .ListLeftPush(queueName, JsonConvert.SerializeObject(evt));
 
@@ -49,14 +47,10 @@ namespace IotHub.Core.CqrsEngine
             {
                 if (_evtDataQueue.ContainsKey(type) && _evtDataQueue[type] != null)
                 {
-                    //in-memory queue, can be use redis queue, rabitmq ...
                     _evtDataQueue[type].Enqueue(evt);
                 }
                 else
                 {
-                    //_cmdTypeName[type.FullName] = type;
-
-                    //in-memory queue, can be use redis queue, rabitmq ...
                     _evtDataQueue[type] = new ConcurrentQueue<IEvent>();
                     _evtDataQueue[type].Enqueue(evt);
 
@@ -116,27 +110,40 @@ namespace IotHub.Core.CqrsEngine
 
         public static void UnsubscribeAll(string typeEvent)
         {
+            if (RedisServices.IsEnable == false)
+            {
+                Console.WriteLine("Should use redis for pubsub function");
+                return;
+            }
+
             var channel = BuildRedisChannelName(typeEvent);
             var allSubscribe = RedisServices.RedisDatabase.HashGetAll(channel);
 
             foreach (var s in allSubscribe)
             {
+                var topic = BuildRedisTopicName(channel, s.Name);
+                RedisServices.RedisSubscriber.Unsubscribe(topic);
+
                 RedisServices.RedisDatabase.HashDelete(channel, s.Name);
             }
 
             RedisServices.RedisDatabase.KeyDelete(channel);
-
 
             Console.WriteLine($"UnSubscribe all for channel: {channel}");
         }
 
         public static void Unsubscribe(string typeEvent, string subscriberName)
         {
+            if (RedisServices.IsEnable == false)
+            {
+                Console.WriteLine("Should use redis for pubsub function");
+                return;
+            }
+            
             var channel = BuildRedisChannelName(typeEvent);
             var topic = BuildRedisTopicName(channel, subscriberName);
             RedisServices.RedisSubscriber.Unsubscribe(topic);
             RedisServices.RedisDatabase.HashDelete(channel, subscriberName);
-
 
             Console.WriteLine($"Unsubscribe for topic: {topic}");
         }
@@ -145,6 +152,7 @@ namespace IotHub.Core.CqrsEngine
         {
             if (RedisServices.IsEnable == false)
             {
+                Console.WriteLine("Should use redis for pubsub function");
                 return;
             }
 
@@ -207,6 +215,7 @@ namespace IotHub.Core.CqrsEngine
 
                                 if (allSubscribe.Count() <= 0)
                                 {
+                                    Console.WriteLine("No consummer to process event data");
                                     Thread.Sleep(100);
                                     continue;
                                 }
@@ -230,8 +239,7 @@ namespace IotHub.Core.CqrsEngine
                                         }
                                         else
                                         {
-                                            RedisServices.RedisDatabase
-                                            .ListLeftPush(queueName, evtJson);
+                                            RedisServices.RedisDatabase.ListLeftPush(queueName, evtJson);
                                         }
                                     }
                                     catch (Exception ex)

@@ -1,6 +1,8 @@
 ﻿using IotHub.Core.Api;
+using IotHub.Core.Authorize;
 using IotHub.Core.Cqrs;
 using IotHub.Core.Reflection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
@@ -12,7 +14,7 @@ namespace IotHub.Core.CqrsEngine
     [ApiController]
     public class CommandSenderController : JsonControllerBase
     {
-        [HttpPost]
+        [HttpPost]       
         public CommandResponse Post(CommandRequest cmd)
         {
             try

@@ -17,6 +17,7 @@ using System.Reflection;
 using IotHub.OAuth;
 using IotHub.Core.Redis;
 using IotHub.Core;
+using IotHub.Core.Authorize;
 
 namespace IotHub.EcommerceApi
 {
@@ -33,8 +34,11 @@ namespace IotHub.EcommerceApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-
+            services.AddCors();
+            services.AddMvc(option=> {
+                option.Filters.Add(new IotHubAuthorizeAttribute());
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+         
             RedisServices.Init("127.0.0.1", null, string.Empty);
 
             CommandsAndEventsRegisterEngine.AutoRegister();

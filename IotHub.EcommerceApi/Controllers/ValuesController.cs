@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IotHub.Core.Authorize;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IotHub.EcommerceApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [IotHubAuthorize]
     public class ValuesController : ControllerBase
     {
         // GET api/values
