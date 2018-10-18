@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IotHub.Core\IotHub.Core.csproj" />
+    <ProjectReference Include="..\IotHub.SampleDomainWithEventSourcing\IotHub.SampleDomainWithEventSourcing.csproj" />
+    <ProjectReference Include="..\IotHub.UserDomain\IotHub.UserDomain.csproj" />
+  </ItemGroup>
+
+</Project>
