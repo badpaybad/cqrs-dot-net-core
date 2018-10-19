@@ -25,7 +25,7 @@ namespace IotHub.Core.Cqrs.CqrsEngine
         [Key]
         public Guid Id { get; set; }
 
-        [StringLength(512)]
+        //[StringLength(512)]
         public string DataType { get; set; }
 
         public string DataJson { get; set; }

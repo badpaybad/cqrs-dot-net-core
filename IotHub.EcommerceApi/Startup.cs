@@ -18,6 +18,8 @@ using IotHub.OAuth;
 using IotHub.Core.Redis;
 using IotHub.Core;
 using IotHub.Core.Authorize;
+using IotHub.DbMigration;
+using Microsoft.EntityFrameworkCore;
 
 namespace IotHub.EcommerceApi
 {
@@ -39,7 +41,12 @@ namespace IotHub.EcommerceApi
                 option.Filters.Add(new IotHubAuthorizeAttribute());
             }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
          
-            RedisServices.Init("127.0.0.1", null, string.Empty);
+            RedisServices.Init("172.16.10.166", null, string.Empty);
+
+            using (var db = new AllInOneDbContext())
+            {
+                db.Database.Migrate();
+            }
 
             CommandsAndEventsRegisterEngine.AutoRegister();
             

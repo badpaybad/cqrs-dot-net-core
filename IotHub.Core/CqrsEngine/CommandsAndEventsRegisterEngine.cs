@@ -61,8 +61,8 @@ namespace IotHub.Core.CqrsEngine
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Can not register assembly: " + assembly.FullName);
-                    Console.WriteLine("- " + ex.GetAllMessages());
+                   // Console.WriteLine("Can not register assembly: " + assembly.FullName);
+                    //Console.WriteLine("- " + ex.GetAllMessages());
                 }
             }
 
@@ -90,7 +90,7 @@ namespace IotHub.Core.CqrsEngine
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.GetAllMessages() + "\r\n" + "Can not load dll: " + dll);
+                        //Console.WriteLine(ex.GetAllMessages() + "\r\n" + "Can not load dll: " + dll);
                     }
                 }
             }
@@ -118,12 +118,12 @@ namespace IotHub.Core.CqrsEngine
             var assemblyFullName = executingAssembly.FullName;
             if (listHandler.Count <= 0)
             {
-                Console.WriteLine("Not found ICqrsHandle in " + assemblyFullName);
+                //Console.WriteLine("Not found ICqrsHandle in " + assemblyFullName);
                 return;
             }
 
             Console.WriteLine($"+-{assemblyFullName}");
-            Console.WriteLine($"Found {listHandler.Count} handle(s) to register to message buss");
+            //Console.WriteLine($"Found {listHandler.Count} handle(s) to register to message buss");
 
             foreach (var handlerType in listHandler)
             {

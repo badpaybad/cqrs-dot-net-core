@@ -27,10 +27,10 @@ namespace IotHub.Core.Cqrs.EventSourcingRepository
 
         public long Version { get; set; }
 
-        [StringLength(512)]
+        //[StringLength(512)]
         public string AggregateType { get; set; } = string.Empty;
 
-        [StringLength(512)]
+        //[StringLength(512)]
         public string EventType { get; set; } = string.Empty;
 
         public string EventData { get; set; }

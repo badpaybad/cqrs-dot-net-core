@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\IotHub.CommandsEvents\IotHub.CommandsEvents.csproj" />
     <ProjectReference Include="..\IotHub.Core\IotHub.Core.csproj" />
+    <ProjectReference Include="..\IotHub.DbMigration\IotHub.DbMigration.csproj" />
     <ProjectReference Include="..\IotHub.OAuth\IotHub.OAuth.csproj" />
   </ItemGroup>
 

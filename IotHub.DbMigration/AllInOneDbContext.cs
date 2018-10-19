@@ -1,4 +1,5 @@
-﻿using IotHub.Core.Cqrs.CqrsEngine;
+﻿using IotHub.Core;
+using IotHub.Core.Cqrs.CqrsEngine;
 using IotHub.Core.Cqrs.EventSourcingRepository;
 using IotHub.Core.DataAccess;
 using IotHub.SampleDomainWithEventSourcing.DataAccess;
@@ -9,7 +10,7 @@ namespace IotHub.DbMigration
 {
     public class AllInOneDbContext : AbstractMsSqlDbContext
     {
-        public AllInOneDbContext() : base("AllInOneDbContext")
+        public AllInOneDbContext() : base(ConfigurationManagerExtensions.GetConnectionString("AllInOneDbContext"))
         {
 
         }
