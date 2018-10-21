@@ -68,7 +68,7 @@ namespace IotHub.Core.Redis
 
             port = port ?? 6379;
 
-            _options = new ConfigurationOptions
+            _options = new ConfigurationOptions()
             {
                 EndPoints =
                 {

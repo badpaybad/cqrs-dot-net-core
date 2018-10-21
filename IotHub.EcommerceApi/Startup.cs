@@ -38,16 +38,12 @@ namespace IotHub.EcommerceApi
         {
             services.AddCors();
             services.AddMvc(option=> {
-                option.Filters.Add(new IotHubAuthorizeAttribute());
+               // option.Filters.Add(new IotHubAuthorizeAttribute());
             }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-         
-            RedisServices.Init("172.16.10.166", null, string.Empty);
 
-            using (var db = new AllInOneDbContext())
-            {
-                db.Database.Migrate();
-            }
-
+            //RedisServices.Init("172.16.10.166", null, string.Empty);
+            var redishost = ConfigurationManagerExtensions.GetConnectionString("RedisConnectionString");
+            RedisServices.Init(redishost, null, string.Empty);
             CommandsAndEventsRegisterEngine.AutoRegister();
             
             EngineeCommandWorkerQueue.Start();

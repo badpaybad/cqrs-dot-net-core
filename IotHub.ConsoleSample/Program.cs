@@ -1,4 +1,5 @@
 ﻿using IotHub.CommandsEvents.SampleDomain;
+using IotHub.Core;
 using IotHub.Core.CqrsEngine;
 using IotHub.Core.PingDomain;
 using IotHub.Core.Redis;
@@ -38,8 +39,9 @@ namespace IotHub.ConsoleSample
 
         private static void Run()
         {
-            RedisServices.Init("127.0.0.1", null, string.Empty);
-
+            var redishost = ConfigurationManagerExtensions.GetConnectionString("RedisConnectionString");
+            RedisServices.Init(redishost, null, string.Empty);
+          
             CommandsAndEventsRegisterEngine.AutoRegister();
 
             EngineeCommandWorkerQueue.Start();

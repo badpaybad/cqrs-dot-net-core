@@ -14,7 +14,8 @@ namespace IotHub.Core.CqrsEngine
     [ApiController]
     public class CommandSenderController : JsonControllerBase
     {
-        [HttpPost]       
+        [HttpPost]
+        [IotHubAuthorize]
         public CommandResponse Post(CommandRequest cmd)
         {
             try

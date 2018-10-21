@@ -19,30 +19,4 @@ namespace IotHub.Core.Authorize
             //throw new NotImplementedException();
         }
     }
-    //public class IotHubAuthorizeAttribute : TypeFilterAttribute//Attribute, IAuthorizationFilter
-    //{
-    //    //public void OnAuthorization(AuthorizationFilterContext context)
-    //    //{
-    //    //    context.Result = new JsonResult(new BaseResponse() {
-    //    //    Message="Unauthorize",
-    //    //    StatusCode= System.Net.HttpStatusCode.Unauthorized,
-    //    //    Success=false});
-    //    //}
-    //    public IotHubAuthorizeAttribute() : base(typeof(IotHubAuthorizeAttributeImpl))
-    //    {
-    //    }
-
-    //    private class IotHubAuthorizeAttributeImpl : Attribute, IAuthorizationFilter
-    //    {
-    //        public void OnAuthorization(AuthorizationFilterContext context)
-    //        {
-    //            context.Result = new JsonResult(new BaseResponse()
-    //            {
-    //                Message = "Unauthorize",
-    //                StatusCode = System.Net.HttpStatusCode.Unauthorized,
-    //                Success = false
-    //            });
-    //        }
-    //    }
-    //}
 }

@@ -8,8 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace IotHub.EcommerceApi.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
-    [IotHubAuthorize]
+    [ApiController]  
     public class ValuesController : ControllerBase
     {
         // GET api/values
@@ -28,6 +27,7 @@ namespace IotHub.EcommerceApi.Controllers
 
         // POST api/values
         [HttpPost]
+        [IotHubAuthorize]
         public void Post([FromBody] string value)
         {
         }
