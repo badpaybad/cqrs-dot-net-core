@@ -63,7 +63,7 @@ namespace IotHub.ConsoleSample
                         MessiveSendCmd(null);
                         break;
                     case "pubsub":
-                        EngineeEventWorkerQueue.Push(new SampleEventCreated()
+                        CommandEventSender.Send(new SampleEventCreated()
                         {
                             PublishedEventId = Guid.NewGuid(),
                             SampleVersion = DateTime.Now.ToString(),
@@ -73,7 +73,7 @@ namespace IotHub.ConsoleSample
                     case "pubsubmad":
                         _stop = false;
                         MessiveSendCmd(()=> {
-                            EngineeEventWorkerQueue.Push(new SampleEventCreated()
+                            CommandEventSender.Send(new SampleEventCreated()
                             {
                                 PublishedEventId = Guid.NewGuid(),
                                 SampleVersion = DateTime.Now.ToString(),

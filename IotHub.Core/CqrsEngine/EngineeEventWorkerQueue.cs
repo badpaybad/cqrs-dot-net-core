@@ -22,13 +22,18 @@ namespace IotHub.Core.CqrsEngine
         static readonly ConcurrentDictionary<string, Type> _evtTypeName = new ConcurrentDictionary<string, Type>();
         static readonly object _locker = new object();
 
-        public static void Push(IEvent evt)
+        static readonly string ListEventTypeNameRedisKey = "EngineeEventWorkerQueue_ListEventTypeName";
+        
+        internal static void Push(IEvent evt)
         {
             var type = evt.GetType().FullName;
+            _evtTypeName[type] = evt.GetType();
 
             if (RedisServices.IsEnable)
             {
                 var queueName = BuildRedisQueueName(type);
+
+                RedisServices.RedisDatabase.HashSet(ListEventTypeNameRedisKey, queueName, queueName);
 
                 if (RedisServices.RedisDatabase.KeyExists(queueName))
                 {
@@ -204,6 +209,7 @@ namespace IotHub.Core.CqrsEngine
                         {
                             if (!CommandsAndEventsRegisterEngine.EventWorkerCanDequeue(type))
                             {
+                                Thread.Sleep(100);
                                 continue;
                             }
                             if (RedisServices.IsEnable)
@@ -269,7 +275,7 @@ namespace IotHub.Core.CqrsEngine
                         }
                         finally
                         {
-                            Thread.Sleep(0);
+                            Thread.Sleep(100);
                         }
                     }
 
@@ -422,6 +428,12 @@ namespace IotHub.Core.CqrsEngine
 
         public static List<string> ListAllCommandName()
         {
+            if (RedisServices.IsEnable)
+            {
+                return RedisServices.RedisDatabase.HashGetAll(ListEventTypeNameRedisKey)
+                  .Select(i => i.Name.ToString()).ToList();
+            }
+
             lock (_locker)
             {
                 return _evtTypeName.Select(i => i.Key).ToList();

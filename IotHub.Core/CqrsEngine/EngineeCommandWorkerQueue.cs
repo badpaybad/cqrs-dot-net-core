@@ -22,13 +22,18 @@ namespace IotHub.Core.CqrsEngine
         static readonly ConcurrentDictionary<string, Type> _cmdTypeName = new ConcurrentDictionary<string, Type>();
         static readonly object _locker = new object();
 
-        public static void Push(ICommand cmd)
+        static readonly string ListCommandTypeNameRedisKey = "EngineeCommandWorkerQueue_ListCommandTypeName";
+
+        internal static void Push(ICommand cmd)
         {
             var type = cmd.GetType().FullName;
+            _cmdTypeName[type] = cmd.GetType();
 
             if (RedisServices.IsEnable)
             {
                 var queueName = BuildRedisQueueName(type);
+
+                RedisServices.RedisDatabase.HashSet(ListCommandTypeNameRedisKey, queueName, queueName);
 
                 if (RedisServices.RedisDatabase.KeyExists(queueName))
                 {
@@ -37,8 +42,6 @@ namespace IotHub.Core.CqrsEngine
                 }
                 else
                 {
-                    // _cmdTypeName[type] = type;
-
                     RedisServices.RedisDatabase
                         .ListLeftPush(queueName, JsonConvert.SerializeObject(cmd));
 
@@ -54,8 +57,6 @@ namespace IotHub.Core.CqrsEngine
                 }
                 else
                 {
-                    //_cmdTypeName[type] = type;
-
                     //in-memory queue, can be use redis queue, rabitmq ...
                     _cmdDataQueue[type] = new ConcurrentQueue<ICommand>();
                     _cmdDataQueue[type].Enqueue(cmd);
@@ -117,6 +118,7 @@ namespace IotHub.Core.CqrsEngine
                             var canDequeue = CommandsAndEventsRegisterEngine.CommandWorkerCanDequeue(type);
                             if (!canDequeue)
                             {
+                                Thread.Sleep(100);
                                 continue;
                             }
                             if (RedisServices.IsEnable)
@@ -169,7 +171,7 @@ namespace IotHub.Core.CqrsEngine
                         }
                         finally
                         {
-                            Thread.Sleep(0);
+                            Thread.Sleep(100);
                         }
                     }
 
@@ -307,8 +309,13 @@ namespace IotHub.Core.CqrsEngine
             }
         }
 
-        public static List<string> ListAllCommandName()
+        public static List<string> ListAllCommandTypeName()
         {
+            if (RedisServices.IsEnable)
+            {
+                return RedisServices.RedisDatabase.HashGetAll(ListCommandTypeNameRedisKey)
+                     .Select(i => i.Name.ToString()).ToList();
+            }
             lock (_locker)
             {
                 return _cmdTypeName.Select(i => i.Key).ToList();

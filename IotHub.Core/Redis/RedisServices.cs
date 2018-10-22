@@ -1,12 +1,10 @@
 ﻿using Newtonsoft.Json;
 using StackExchange.Redis;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace IotHub.Core.Redis
 {
-    public static class RedisServices  
+    public static class RedisServices
     {
         static IServer _server;
         static SocketManager _socketManager;
@@ -95,7 +93,7 @@ namespace IotHub.Core.Redis
             var val = RedisDatabase.StringGet(key);
             if (val.HasValue == false) return default(T);
 
-            return JsonConvert.DeserializeObject<T>(val );
+            return JsonConvert.DeserializeObject<T>(val);
         }
 
         public static void Set<T>(string key, T val, TimeSpan? expireAfter = null)

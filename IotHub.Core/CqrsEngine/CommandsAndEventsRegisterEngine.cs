@@ -59,9 +59,9 @@ namespace IotHub.Core.CqrsEngine
                 {
                     RegisterAssembly(assembly);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                   // Console.WriteLine("Can not register assembly: " + assembly.FullName);
+                    // Console.WriteLine("Can not register assembly: " + assembly.FullName);
                     //Console.WriteLine("- " + ex.GetAllMessages());
                 }
             }
@@ -85,10 +85,10 @@ namespace IotHub.Core.CqrsEngine
                     try
                     {
                         //allAssemblies.Add(Assembly.LoadFile(dll));
-                      var assbl=  AssemblyLoadContext.Default.LoadFromAssemblyPath(dll);
+                        var assbl = AssemblyLoadContext.Default.LoadFromAssemblyPath(dll);
                         allAssemblies.Add(assbl);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         //Console.WriteLine(ex.GetAllMessages() + "\r\n" + "Can not load dll: " + dll);
                     }
