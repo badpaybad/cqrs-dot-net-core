@@ -1,5 +1,6 @@
 ﻿using IotHub.Core.Cqrs;
 using IotHub.Core.Redis;
+using Newtonsoft.Json;
 using System;
 
 namespace IotHub.Core.CqrsEngine
@@ -13,6 +14,8 @@ namespace IotHub.Core.CqrsEngine
                 cmd.PublishedCommandId = Guid.NewGuid();
             }
             CommandsAndEventsRegisterEngine.PushCommand(cmd, RedisServices.IsEnable);
+            Console.WriteLine("Sent");
+            Console.WriteLine(JsonConvert.SerializeObject(cmd));
         }
 
         public static void Send(IEvent evt)
@@ -22,6 +25,8 @@ namespace IotHub.Core.CqrsEngine
                 evt.PublishedEventId = Guid.NewGuid();
             }
             CommandsAndEventsRegisterEngine.PushEvent(evt, RedisServices.IsEnable);
+            Console.WriteLine("Sent");
+            Console.WriteLine(JsonConvert.SerializeObject(evt));
         }
     }
 }
