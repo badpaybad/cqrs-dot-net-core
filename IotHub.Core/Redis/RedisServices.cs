@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using StackExchange.Redis;
 using System;
 
@@ -12,6 +13,15 @@ namespace IotHub.Core.Redis
         static ConfigurationOptions _options = null;
 
         public static bool IsEnable { get; private set; }
+
+        static IMemoryCache _cache;
+
+        static RedisServices()
+        {
+            _cache = new MemoryCache(new MemoryCacheOptions()
+            {
+            });
+        }
 
         static IConnectionMultiplexer RedisConnectionMultiplexer
         {
@@ -58,6 +68,7 @@ namespace IotHub.Core.Redis
 
         public static void Init(string endPoint, int? port, string pwd)
         {
+            if (_cache == null) _cache = new MemoryCache(new MemoryCacheOptions());
 
             IsEnable = !string.IsNullOrEmpty(endPoint);
 
@@ -90,6 +101,16 @@ namespace IotHub.Core.Redis
 
         public static T Get<T>(string key)
         {
+            if (!IsEnable)
+            {
+                string val1;
+                if (_cache.TryGetValue<string>(key, out val1) && !string.IsNullOrEmpty(val1))
+                {
+                    return JsonConvert.DeserializeObject<T>(val1);
+                }
+                return default(T);
+            }
+
             var val = RedisDatabase.StringGet(key);
             if (val.HasValue == false) return default(T);
 
@@ -98,17 +119,45 @@ namespace IotHub.Core.Redis
 
         public static void Set<T>(string key, T val, TimeSpan? expireAfter = null)
         {
+            if (!IsEnable)
+            {
+                if (expireAfter != null)
+                    _cache.Set<string>(key, JsonConvert.SerializeObject(val), expireAfter.Value);
+                else
+                    _cache.Set<string>(key, JsonConvert.SerializeObject(val));
+                return;
+            }
+
             RedisDatabase.StringSet(key, JsonConvert.SerializeObject(val), expireAfter);
         }
 
         public static string Get(string key)
         {
+            if (!IsEnable)
+            {
+                string val1;
+                if (_cache.TryGetValue<string>(key, out val1) && !string.IsNullOrEmpty(val1))
+                {
+                    return val1;
+                }
+                return null;
+            }
+
             var val = RedisDatabase.StringGet(key);
             return val;
         }
 
         public static void Set(string key, string val, TimeSpan? expireAfter = null)
         {
+            if (!IsEnable)
+            {
+                if (expireAfter != null)
+                    _cache.Set<string>(key, val, expireAfter.Value);
+                else
+                    _cache.Set<string>(key, val);
+                return;
+            }
+
             RedisDatabase.StringSet(key, val, expireAfter);
         }
     }
